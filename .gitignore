@@ -1,0 +1,12 @@
+📥 처리대기/*.jpg
+📥 처리대기/*.jpeg
+📥 처리대기/*.png
+📥 처리대기/*.heic
+📥 처리대기/*.heif
+✅ 처리완료/
+.DS_Store
+*.numbers
+__pycache__/
+*.pyc
+2_FINANCE/
+1_OPERATIONS/
