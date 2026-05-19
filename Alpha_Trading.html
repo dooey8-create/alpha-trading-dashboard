@@ -1497,7 +1497,7 @@ function initSitu() {
 
 // ============= STATE & PERSISTENCE =============
 const LS_KEYS = { sales26:'at_sales_2026', sales25:'at_sales_2025', expenses:'at_expenses', ver:'at_data_ver' };
-const DATA_VER = '20260518e';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
+const DATA_VER = '20260519a';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
 
 // 버전이 다르면 localStorage 완전 초기화 (배치 업데이트 후 구버전 캐시 방지)
 (function checkDataVersion() {
@@ -2708,9 +2708,15 @@ function renderPaySchedule() {
       else unscheduled.pending.push({...r, commission: commAmt, _displayStore: displayStore});
       return;
     }
-    // 과거 날짜엔 blue(실제 입금확정)만 표시 — 미수/예상 항목은 지난 내역에 섞이지 않게
+    // 과거 날짜 — blue(실제입금)은 byFriday 정상 등록, 비blue는 해당 주 버킷에 isMissed=true로 등록
     if (exp.friday < todayStr && r.status !== 'blue') {
-      unscheduled.overdue.push({...r, commission: commAmt, _displayStore: displayStore});
+      if (!byFriday[exp.friday]) byFriday[exp.friday] = [];
+      byFriday[exp.friday].push({
+        store: displayStore, comm: commAmt, region: r.region || getRegion(r.store),
+        confirmed: false, type: exp.type, status: r.status,
+        date: r.date, note: exp.note || '', isCanada: isCanadaAcct,
+        isMissed: true
+      });
       return;
     }
     if (!byFriday[exp.friday]) byFriday[exp.friday] = [];
@@ -2786,11 +2792,18 @@ function renderPaySchedule() {
 
   display.forEach(friday => {
     const items = byFriday[friday];
-    const total = items.reduce((s, e) => s + e.comm, 0);
     const isPast = friday < todayStr;
     const isThisWeek = friday === getFriday(todayStr);
-    const confirmedAmt = items.filter(e=>e.confirmed).reduce((s,e)=>s+e.comm,0);
+
+    // 과거: 실제입금(blue) vs 미수(isMissed) 분리
+    const receivedItems = isPast ? items.filter(e => !e.isMissed) : items;
+    const missedItems  = isPast ? items.filter(e => e.isMissed)  : [];
+    const receivedTotal = receivedItems.reduce((s,e) => s+e.comm, 0);
+    const missedTotal   = missedItems.reduce((s,e) => s+e.comm, 0);
+    const total = isPast ? receivedTotal : items.reduce((s,e) => s+e.comm, 0);
+    const confirmedAmt = items.filter(e=>e.confirmed && !e.isMissed).reduce((s,e)=>s+e.comm,0);
     const estimatedAmt = total - confirmedAmt;
+    const hasMissed = missedItems.length > 0;
 
     // Date formatting
     const fd = new Date(friday + 'T12:00:00');
@@ -2798,39 +2811,47 @@ function renderPaySchedule() {
     const dayNames = ['일','월','화','수','목','금','토'];
     const label = `${fd.getFullYear()}년 ${mo}월 ${dy}일 (${dayNames[fd.getDay()]})`;
 
-    // Region breakdown
+    // Region breakdown (received only for past)
     const byRegion = {};
-    items.forEach(e => { byRegion[e.region] = (byRegion[e.region]||0) + e.comm; });
+    receivedItems.forEach(e => { byRegion[e.region] = (byRegion[e.region]||0) + e.comm; });
 
-    const headerBg = isPast ? 'var(--bg)' : isThisWeek ? 'rgba(99,102,241,.12)' : 'rgba(16,185,129,.06)';
-    const borderCol = isPast ? 'var(--border)' : isThisWeek ? '#6366f1' : '#10b981';
-    const headerOpacity = isPast ? '0.65' : '1';
+    const headerBg = isPast ? (hasMissed ? 'rgba(239,68,68,.04)' : 'var(--bg)') : isThisWeek ? 'rgba(99,102,241,.12)' : 'rgba(16,185,129,.06)';
+    const borderCol = isPast ? (hasMissed ? '#f87171' : 'var(--border)') : isThisWeek ? '#6366f1' : '#10b981';
+    const headerOpacity = isPast ? (hasMissed ? '1' : '0.65') : '1';
+    // 미수 있는 과거 주는 자동 펼침
+    const defaultOpen = !isPast || hasMissed;
 
     html += `<div style="border:1.5px solid ${borderCol};border-radius:10px;overflow:hidden;opacity:${headerOpacity};">
       <div style="background:${headerBg};padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;"
            onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
         <div style="flex:1;">
-          <span style="font-weight:700;font-size:13px;">${isPast?'⬜':isThisWeek?'🔔':'📅'} ${label}</span>
+          <span style="font-weight:700;font-size:13px;">${isPast?(hasMissed?'⚠️':'⬜'):isThisWeek?'🔔':'📅'} ${label}</span>
           ${isThisWeek ? '<span style="font-size:11px;background:#6366f1;color:#fff;border-radius:4px;padding:1px 6px;margin-left:6px;">이번주</span>' : ''}
           ${isPast ? '<span style="font-size:11px;color:var(--muted);margin-left:6px;">지난 내역</span>' : ''}
+          ${hasMissed ? `<span style="font-size:11px;background:rgba(239,68,68,.15);color:#dc2626;border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:700;">미수 ${missedItems.length}건 팔로업 필요</span>` : ''}
         </div>
         <div style="text-align:right;">
-          <div style="font-size:15px;font-weight:800;color:${isPast?'var(--muted)':isThisWeek?'#6366f1':'#10b981'}">${fmt(total)}</div>
-          <div style="font-size:10px;color:var(--muted);">${items.length}건 · ${confirmedAmt>0?'확정 '+fmt(confirmedAmt):''}${estimatedAmt>0?(confirmedAmt>0?' + ':'')+' 예상 '+fmt(estimatedAmt):''}</div>
+          ${isPast ? `
+            <div style="font-size:14px;font-weight:800;color:var(--muted);">실제 ${fmt(receivedTotal)}</div>
+            ${hasMissed ? `<div style="font-size:12px;font-weight:700;color:#dc2626;">미수 ${fmt(missedTotal)} · ${missedItems.length}건</div>` : `<div style="font-size:10px;color:var(--muted);">${receivedItems.length}건</div>`}
+          ` : `
+            <div style="font-size:15px;font-weight:800;color:${isThisWeek?'#6366f1':'#10b981'}">${fmt(total)}</div>
+            <div style="font-size:10px;color:var(--muted);">${items.length}건 · ${confirmedAmt>0?'확정 '+fmt(confirmedAmt):''}${estimatedAmt>0?(confirmedAmt>0?' + ':'')+' 예상 '+fmt(estimatedAmt):''}</div>
+          `}
         </div>
       </div>
-      <div style="padding:8px 14px;display:${isPast?'none':''};">
+      <div style="padding:8px 14px;display:${defaultOpen?'':'none'};">
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
           ${Object.entries(byRegion).sort((a,b)=>b[1]-a[1]).map(([reg,amt])=>`<span style="font-size:11px;background:${regionColors[reg]||'#6b7280'}22;color:${regionColors[reg]||'#6b7280'};border-radius:4px;padding:2px 7px;font-weight:600;">${reg} ${fmt(amt)}</span>`).join('')}
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px;">
-          ${items.sort((a,b)=>b.comm-a.comm).map(e => {
+          ${receivedItems.sort((a,b)=>b.comm-a.comm).map(e => {
             const dot = e.confirmed ? '🔵' : (e.type==='BSW긴급' ? '🔴' : '🟢');
             const typeTag = e.confirmed ? '' : e.type==='BSW긴급'
               ? `<span style="font-size:10px;color:#dc2626;background:rgba(220,38,38,.12);border-radius:3px;padding:1px 5px;font-weight:600;">🔴 BSW연체</span>`
               : `<span style="font-size:10px;color:#10b981;background:rgba(16,185,129,.12);border-radius:3px;padding:1px 5px;">${e.type}</span>`;
             const noteStr = e.note ? `<span style="font-size:10px;color:var(--muted);">${e.note}</span>` : '';
-            const canadaTag = e.isCanada ? `<span style="font-size:10px;color:#ec4899;background:rgba(236,72,153,.12);border-radius:3px;padding:1px 5px;font-weight:600;">🍁 Canada (=Rex Beauty)</span>` : '';
+            const canadaTag = e.isCanada ? `<span style="font-size:10px;color:#ec4899;background:rgba(236,72,153,.12);border-radius:3px;padding:1px 5px;font-weight:600;">🍁 Canada</span>` : '';
             return `<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;background:var(--bg);font-size:12px;${e.isCanada?'border-left:2px solid #ec4899;':''}">
               <span>${dot}</span>
               <span style="flex:1;font-weight:500;">${e.store}</span>
@@ -2839,6 +2860,22 @@ function renderPaySchedule() {
             </div>`;
           }).join('')}
         </div>
+        ${hasMissed ? `
+        <div style="margin-top:10px;border-top:1px dashed rgba(239,68,68,.3);padding-top:8px;">
+          <div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:6px;">🚨 이 주에 들어왔어야 하는데 미수금 — 팔로업 필요</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px;">
+            ${missedItems.sort((a,b)=>b.comm-a.comm).map(e => {
+              const daysAgo = Math.floor((new Date(todayStr) - new Date(friday+'T12:00:00')) / 86400000);
+              return `<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;background:rgba(239,68,68,.07);border-left:3px solid #ef4444;font-size:12px;">
+                <span>🔴</span>
+                <span style="flex:1;font-weight:500;">${e.store}</span>
+                <span style="font-size:10px;color:var(--muted);">판매 ${e.date}</span>
+                <span style="font-size:10px;color:#dc2626;font-weight:600;">${daysAgo}일 경과</span>
+                <span style="font-weight:700;color:#dc2626;">${fmt(e.comm)}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
       </div>
     </div>`;
   });
@@ -2850,7 +2887,7 @@ function renderPaySchedule() {
     html += `<div style="margin-top:16px;border:1.5px solid #ef4444;border-radius:10px;overflow:hidden;">
       <div style="background:rgba(239,68,68,.08);padding:10px 14px;display:flex;justify-content:space-between;cursor:pointer;"
            onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
-        <span style="font-weight:700;color:#ef4444;">🚨 연체 미수금 (스케줄 미정)</span>
+        <span style="font-weight:700;color:#ef4444;">🚨 연체 미수금 (예상날짜 미정)</span>
         <span style="font-weight:700;color:#ef4444;">${fmt(unscheduled.overdue.reduce((s,r)=>s+(r.comm||r.commission||0),0))} · ${unscheduled.overdue.length}건</span>
       </div>
       <div style="padding:8px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px;">
