@@ -1497,7 +1497,7 @@ function initSitu() {
 
 // ============= STATE & PERSISTENCE =============
 const LS_KEYS = { sales26:'at_sales_2026', sales25:'at_sales_2025', expenses:'at_expenses', ver:'at_data_ver' };
-const DATA_VER = '20260518d';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
+const DATA_VER = '20260518e';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
 
 // 버전이 다르면 localStorage 완전 초기화 (배치 업데이트 후 구버전 캐시 방지)
 (function checkDataVersion() {
@@ -2706,6 +2706,11 @@ function renderPaySchedule() {
     if (!exp.friday) {
       if (exp.type === '연체미수') unscheduled.overdue.push({...r, commission: commAmt, _displayStore: displayStore});
       else unscheduled.pending.push({...r, commission: commAmt, _displayStore: displayStore});
+      return;
+    }
+    // 과거 날짜엔 blue(실제 입금확정)만 표시 — 미수/예상 항목은 지난 내역에 섞이지 않게
+    if (exp.friday < todayStr && r.status !== 'blue') {
+      unscheduled.overdue.push({...r, commission: commAmt, _displayStore: displayStore});
       return;
     }
     if (!byFriday[exp.friday]) byFriday[exp.friday] = [];
