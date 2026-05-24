@@ -19,6 +19,189 @@
   }
   window.addEventListener('resize', function() { if (window.innerWidth <= 480) wrapTables(); });
 
+
+  // ============= 추천 루트 =============
+  const REGION_ORDER = ['Boston','NYC/NJ','Delaware','Ohio','Other'];
+  const REGION_EMOJI = { 'Boston':'🟦', 'NYC/NJ':'🟧', 'Delaware':'🟩', 'Ohio':'🟥', 'Other':'⬜', 'Canada':'🍁' };
+  const REGION_LABEL = { 'Boston':'Boston (MA)', 'NYC/NJ':'NYC / NJ', 'Delaware':'Delaware', 'Ohio':'Ohio', 'Other':'Other', 'Canada':'Canada' };
+
+  function getRouteData() {
+    const allSales = [...SALES_2026, ...SALES_2025];
+    const today = new Date(); today.setHours(12,0,0,0);
+
+    // 가게별 최근 방문일, 미수 커미션, 총 커미션 집계
+    const storeMap = {};
+    allSales.forEach(r => {
+      const k = r.store || '';
+      if (!k) return;
+      if (!storeMap[k]) storeMap[k] = { region: r.region||'Other', dates:[], unpaid:0, paid:0, total:0 };
+      storeMap[k].dates.push(r.date || r.date_sold || '');
+      const c = r.commission || 0;
+      storeMap[k].total += c;
+      if (r.status === 'red') storeMap[k].unpaid += c;
+      else if (r.status === 'blue') storeMap[k].paid += c;
+    });
+
+    // 지역별 집계
+    const regionMap = {};
+    Object.entries(storeMap).forEach(([store, info]) => {
+      const region = info.region;
+      const validDates = info.dates.filter(d=>d).sort();
+      const lastDate = validDates[validDates.length - 1] || '';
+      const daysAgo = lastDate
+        ? Math.floor((today - new Date(lastDate)) / 86400000)
+        : 999;
+      const nextExpected = lastDate
+        ? new Date(new Date(lastDate).getTime() + 28*86400000)
+        : today;
+      const daysUntilDue = Math.floor((nextExpected - today) / 86400000);
+
+      if (!regionMap[region]) regionMap[region] = {
+        stores:[], totalUnpaid:0, totalComm:0,
+        lastVisit:'', avgDaysAgo:0, storeCount:0
+      };
+      regionMap[region].stores.push({
+        store, lastDate, daysAgo, daysUntilDue,
+        unpaid: info.unpaid, total: info.total, visits: validDates.length
+      });
+      regionMap[region].totalUnpaid += info.unpaid;
+      regionMap[region].totalComm   += info.total;
+    });
+
+    // 지역별 최근 방문일 집계
+    Object.values(regionMap).forEach(r => {
+      const activeDates = r.stores.map(s=>s.lastDate).filter(d=>d).sort();
+      r.lastVisit = activeDates[activeDates.length-1] || '';
+      r.daysAgo = r.lastVisit ? Math.floor((today - new Date(r.lastVisit))/86400000) : 999;
+      r.storeCount = r.stores.length;
+      // 우선도 점수: 경과일*0.6 + 미수금 비율*0.4
+      const maxDays = 90;
+      r.priority = Math.min(r.daysAgo/maxDays, 1)*60 + (r.totalComm>0 ? r.totalUnpaid/r.totalComm*40 : 0);
+      // 다음 방문 권장일 (28일 주기 기준)
+      r.nextVisit = r.lastVisit
+        ? new Date(new Date(r.lastVisit).getTime() + 28*86400000).toISOString().slice(0,10)
+        : today.toISOString().slice(0,10);
+      r.daysUntilNext = r.lastVisit
+        ? Math.floor((new Date(r.nextVisit) - today)/86400000)
+        : 0;
+      // 가게 정렬: 미수금 많은 순 → 방문 안한 순
+      r.stores.sort((a,b) => (b.unpaid - a.unpaid) || (b.daysAgo - a.daysAgo));
+    });
+
+    return regionMap;
+  }
+
+  function renderRoutePage() {
+    const regionMap = getRouteData();
+    const today = new Date(); today.setHours(12,0,0,0);
+
+    // 날짜 라벨
+    const lbl = document.getElementById('routeTodayLabel');
+    if (lbl) lbl.textContent = 'Alpha Trading · ' + fmtD(today.toISOString().slice(0,10)) + ' 기준';
+
+    // KPI
+    const kpiEl = document.getElementById('routeKpiRow');
+    if (kpiEl) {
+      const regions = Object.values(regionMap);
+      const overdueRegions = regions.filter(r => r.daysAgo > 28).length;
+      const thisWeek = regions.filter(r => r.daysUntilNext <= 7).length;
+      const totalUnpaid = regions.reduce((a,r)=>a+r.totalUnpaid,0);
+      const urgentStores = regions.reduce((a,r)=>a+r.stores.filter(s=>s.daysAgo>35).length,0);
+      kpiEl.innerHTML = [
+        {label:'이번 주 방문 권장', value: thisWeek+'개 지역', cls:'indigo'},
+        {label:'30일 초과 지역', value: overdueRegions+'개', cls: overdueRegions>2?'red':'amber'},
+        {label:'미수 커미션', value: fmt(totalUnpaid), cls:'red'},
+        {label:'장기 미방문 가게', value: urgentStores+'개 (35일+)', cls:'amber'},
+      ].map(k=>`<div class="kpi" style="border-left:3px solid var(--${k.cls||'indigo'});">
+        <div class="label" style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;">${k.label}</div>
+        <div class="value" style="font-size:20px;font-weight:800;margin-top:4px;">${k.value}</div>
+      </div>`).join('');
+    }
+
+    // 지역 카드
+    const cardsEl = document.getElementById('routeRegionCards');
+    if (cardsEl) {
+      const sortedRegions = [...REGION_ORDER, 'Canada']
+        .filter(r => regionMap[r])
+        .map(r => ({r, ...regionMap[r]}))
+        .sort((a,b) => b.priority - a.priority);
+
+      cardsEl.innerHTML = sortedRegions.map(({r, stores, totalUnpaid, totalComm, daysAgo, lastVisit, daysUntilNext, storeCount, priority}) => {
+        const urgency = daysAgo > 42 ? 'high' : daysAgo > 28 ? 'med' : 'low';
+        const urgencyColor = {high:'#ef4444', med:'#f59e0b', low:'#10b981'}[urgency];
+        const urgencyLabel = {high:'🔴 방문 필요', med:'🟡 곧 방문', low:'🟢 여유'}[urgency];
+        const thisWeekLabel = daysUntilNext <= 0 ? '⚡ 이번 주' : daysUntilNext <= 7 ? '📅 이번 주' : `${daysUntilNext}일 후`;
+        const isThisWeek = daysUntilNext <= 7;
+
+        // 상위 5개 가게
+        const topStores = stores.slice(0, 5);
+        const storeRows = topStores.map(s => {
+          const urgStore = s.daysAgo > 45 ? '🔴' : s.daysAgo > 28 ? '🟡' : '⚪';
+          const unpaidBadge = s.unpaid > 0
+            ? `<span style="background:#fee2e2;color:#991b1b;border-radius:4px;padding:1px 6px;font-size:10px;margin-left:4px;">${fmt(s.unpaid)}</span>`
+            : '';
+          return `<tr style="${s.daysAgo>45?'background:rgba(239,68,68,.04);':''}">
+            <td style="padding:6px 8px;font-size:12px;">${urgStore} ${s.store}${unpaidBadge}</td>
+            <td style="padding:6px 8px;font-size:11px;color:var(--muted);text-align:right;">${s.lastDate||'-'}</td>
+            <td style="padding:6px 8px;font-size:11px;text-align:right;color:${s.daysAgo>35?'#ef4444':s.daysAgo>21?'#f59e0b':'var(--muted)'};">${s.daysAgo}일 전</td>
+            <td style="padding:6px 8px;font-size:11px;text-align:right;">${fmt(s.total)}</td>
+          </tr>`;
+        }).join('');
+
+        return `<div class="card" style="border-left:4px solid ${urgencyColor};${isThisWeek?'box-shadow:0 0 0 1px '+urgencyColor+'33;':''}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+            <div>
+              <span style="font-size:16px;font-weight:800;">${REGION_EMOJI[r]||'📍'} ${REGION_LABEL[r]||r}</span>
+              <span style="margin-left:10px;font-size:11px;font-weight:700;color:${urgencyColor};">${urgencyLabel}</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              ${totalUnpaid>0?`<span style="background:#fee2e2;color:#991b1b;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;">미수 ${fmt(totalUnpaid)}</span>`:''}
+              <span style="background:${isThisWeek?urgencyColor:'var(--border)'};color:${isThisWeek?'white':'var(--muted)'};border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;">${thisWeekLabel}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;color:var(--muted);">
+            <span>최근 방문: <b style="color:var(--text);">${lastVisit||'-'}</b></span>
+            <span>경과: <b style="color:${urgencyColor};">${daysAgo}일</b></span>
+            <span>가게 수: ${storeCount}개</span>
+            <span>누적 커미션: ${fmt(totalComm)}</span>
+          </div>
+          <div class="tbl-wrap">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead><tr style="background:var(--bg);">
+                <th style="padding:5px 8px;text-align:left;font-size:10px;color:var(--muted);font-weight:600;">가게</th>
+                <th style="padding:5px 8px;text-align:right;font-size:10px;color:var(--muted);font-weight:600;">최근방문</th>
+                <th style="padding:5px 8px;text-align:right;font-size:10px;color:var(--muted);font-weight:600;">경과</th>
+                <th style="padding:5px 8px;text-align:right;font-size:10px;color:var(--muted);font-weight:600;">누적매출커미션</th>
+              </tr></thead>
+              <tbody>${storeRows}</tbody>
+            </table>
+          </div>
+          ${stores.length>5?`<div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:right;">+ ${stores.length-5}개 가게 더 있음</div>`:''}
+        </div>`;
+      }).join('');
+    }
+
+    // 타임��인
+    const tlEl = document.getElementById('routeTimeline');
+    if (tlEl) {
+      const regions = [...REGION_ORDER,'Canada'].filter(r=>regionMap[r]);
+      tlEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">` +
+        regions.map(r => {
+          const info = regionMap[r];
+          const pct = Math.min(info.daysAgo / 56 * 100, 100);
+          const color = info.daysAgo>42?'#ef4444':info.daysAgo>28?'#f59e0b':'#10b981';
+          return `<div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:110px;font-size:12px;font-weight:600;flex-shrink:0;">${REGION_EMOJI[r]} ${r}</div>
+            <div style="flex:1;background:var(--border);border-radius:4px;height:10px;overflow:hidden;">
+              <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;transition:width .3s;"></div>
+            </div>
+            <div style="width:80px;font-size:11px;text-align:right;color:${color};font-weight:700;">${info.daysAgo}일 전</div>
+            <div style="width:90px;font-size:10px;color:var(--muted);text-align:right;">다음: ${info.nextVisit}</div>
+          </div>`;
+        }).join('') + '</div>';
+    }
+  }
+
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -325,7 +508,7 @@
   <button class="pnav-btn" data-page="expenses"><span class="pi">💸</span>지출</button>
   <button class="pnav-btn" data-page="commission"><span class="pi">💰</span>커미션</button>
   <button class="pnav-btn" data-page="cardstrat"><span class="pi">💳</span>카드전략</button>
-  <button class="pnav-btn" data-page="info"><span class="pi">⚙️</span>설정</button>
+  <button class="pnav-btn" data-page="route"><span class="pi">🗺️</span>루트</button>
 </nav>
 
 <!-- ═══ PAGE: 매출 ═══ -->
@@ -954,50 +1137,33 @@
 
 
 <!-- ═══ PAGE: 설정 ═══ -->
-<div class="page-section" id="page-info" style="display:none;">
+<div class="page-section" id="page-route" style="display:none;">
 
-  <!-- 파일 임포트 섹션 -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:4px;">📂 새 데이터 파일 임포트</h3>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">매출 Excel (.xlsx) 또는 지출 카드명세서 정보를 드래그&드롭하거나 클릭해서 업로드하세요. 기존 데이터와 자동 병합됩니다.</p>
-
-    <!-- Drop Zone -->
-    <div id="importDropZone" onclick="document.getElementById('importFileInput').click()"
-      style="border:2px dashed var(--border);border-radius:12px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);"
-      ondragover="event.preventDefault();this.style.borderColor='#6366f1';this.style.background='rgba(99,102,241,.06)';"
-      ondragleave="this.style.borderColor='';this.style.background='var(--bg)';"
-      ondrop="handleFileDrop(event)">
-      <div style="font-size:36px;margin-bottom:8px;">📁</div>
-      <div style="font-weight:600;font-size:14px;margin-bottom:4px;">파일을 여기에 드래그하거나 클릭</div>
-      <div style="font-size:12px;color:var(--muted);">지원: .xlsx (매출 데이터) · 다중 파일 동시 업로드 가능</div>
-      <input type="file" id="importFileInput" accept=".xlsx,.xls" multiple style="display:none;" onchange="handleFileSelect(event)">
+  <!-- 이번 주 추천 루트 헤더 -->
+  <div class="header">
+    <div>
+      <h1>🗺️ 이번 주 추천 루트</h1>
+      <div class="sub" id="routeTodayLabel"></div>
     </div>
-
-    <!-- Import Log -->
-    <div id="importLog" style="margin-top:12px;display:none;">
-      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">임포트 결과</div>
-      <div id="importLogBody" style="font-size:12px;line-height:1.8;"></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-sm" onclick="renderRoutePage()">🔄 새로고침</button>
     </div>
   </div>
 
-  <!-- 현재 데이터 현황 -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">📊 현재 데이터 현황</h3>
-    <div id="dataStatus" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;"></div>
-    <div style="margin-top:12px;font-size:11px;color:var(--muted);">데이터 버전: <span id="dataVerDisplay"></span></div>
-  </div>
+  <!-- KPI 요약 -->
+  <div id="routeKpiRow" class="kpi-grid" style="margin-bottom:16px;"></div>
 
-  <!-- 커미션 구조 -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="font-size:13px;color:var(--muted);margin-bottom:8px;">커미션 구조</h3>
-    <div class="info-row"><span class="lbl">직접 방문</span><span class="val">17%</span></div>
-    <div class="info-row"><span class="lbl">창고 / 배송</span><span class="val">12%</span></div>
-    <div class="info-row"><span class="lbl">고객 직접 픽업</span><span class="val">10%</span></div>
+  <!-- 이번 주 추천 지역 카드들 -->
+  <div id="routeRegionCards" style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px;"></div>
+
+  <!-- 지역별 최근 방문 타임라인 -->
+  <div class="card">
+    <h2>📅 지역별 방문 주기 현황</h2>
+    <div id="routeTimeline" style="margin-top:8px;"></div>
   </div>
 
 </div>
 
-<!-- ═══ PAGE: 카드 전략 ═══ -->
 <div class="page-section" id="page-cardstrat" style="display:none;">
 
   <!-- KPI 요약 -->
@@ -1668,7 +1834,7 @@ function initSitu() {
 
 // ============= STATE & PERSISTENCE =============
 const LS_KEYS = { sales26:'at_sales_2026', sales25:'at_sales_2025', expenses:'at_expenses', ver:'at_data_ver' };
-const DATA_VER = '20260524f';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
+const DATA_VER = '20260524g';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
 
 // 버전이 다르면 localStorage 완전 초기화 (배치 업데이트 후 구버전 캐시 방지)
 (function checkDataVersion() {
@@ -3209,6 +3375,7 @@ function setupTabs() {
       else if (p === 'expenses')   { renderExpKpis(); renderExpenseChart(); renderExpenseCatChart(); renderExp(); }
       else if (p === 'commission') { initCommissionTab(); }
       else if (p === 'cardstrat')  { renderCardPage(); }
+      else if (p === 'route')      { renderRoutePage(); }
       else if (p === 'info')       { renderDataStatus(); }
     };
   });
