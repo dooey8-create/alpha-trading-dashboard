@@ -331,7 +331,18 @@
 <!-- ═══ PAGE: 매출 ═══ -->
 <div class="page-section active" id="page-sales">
   <div class="kpi-grid" id="kpiGrid"></div>
-  <div class="row cols-2">
+    <!-- 커미션 현황 도넛 + 우선순위 -->
+  <div class="row cols-2" style="margin-bottom:16px;">
+    <div class="card">
+      <h2>💰 커미션 현황</h2>
+      <div class="chart-box" style="height:200px;"><canvas id="statusChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>🔥 미수금 우선순위 <span class="hint">TOP 12</span></h2>
+      <div id="priorityList" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;"></div>
+    </div>
+  </div>
+<div class="row cols-2">
     <div class="card"><h2>월별 매출 &amp; 커미션 <span class="hint">2026년</span></h2><div class="chart-box"><canvas id="monthlyChart"></canvas></div></div>
     <div class="card"><h2>지역별 매출 <span class="hint">2026년</span></h2><div class="chart-box"><canvas id="regionChart"></canvas></div></div>
   </div>
@@ -378,7 +389,32 @@
     </div>
     </div>
     </div>
-    <div id="stab-situ" style="display:none;">
+    
+  <!-- 미수금 목록 -->
+  <div class="card" style="margin-top:16px;">
+    <h2>📋 미수금 목록</h2>
+    <div class="controls" style="margin-bottom:8px;">
+      <input id="outstandingSearch" type="text" placeholder="가게 검색..." style="min-width:200px;" oninput="renderOutstandingTable()">
+      <div class="spacer"></div>
+      <span class="count" id="outstandingCount"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table id="outstandingTable">
+        <thead><tr>
+          <th>판매일</th>
+          <th>가게</th>
+          <th class="num">매출</th>
+          <th>%</th>
+          <th class="num">미수 커미션</th>
+          <th>예상입금</th>
+          <th>비고</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+<div id="stab-situ" style="display:none;">
 <div id="tab-situ" style="display:none;">
 <header class="header">
   <div>
@@ -810,7 +846,14 @@
       <div class="tab active" data-ctab="crdl">📋 CR DL 내역</div>
       <div class="tab" data-ctab="outstanding">💸 미수금</div>
       <div class="tab" data-ctab="bystore">🏪 가게별</div>
-      <div class="tab" data-ctab="monthly">📈 월별 요약</div>
+      <div class="tab" data-ctab="monthly">📈 월별</div>
+      <div class="tab" data-ctab="aging">📊 에이징</div>
+      <div class="tab" data-ctab="canada">🍁 Canada</div>
+      <div class="tab" data-ctab="itsdiff">💰 ITS오차</div>
+      <div class="tab" data-ctab="achievement">🎯 월달성</div>
+      <div class="tab" data-ctab="schedule">📅 지급예정</div>
+      <div class="tab" data-ctab="quick">⚡ 수금입력</div>
+      <div class="tab" data-ctab="verify">✅ 검증 <span id="verifyBadge" style="display:inline-block;background:#ef4444;color:white;border-radius:10px;padding:1px 5px;font-size:10px;margin-left:3px;"></span></div>
     </div>
 
     <!-- CR DL 내역 탭 -->
@@ -884,6 +927,27 @@
         </table>
       </div>
     </div>
+
+    <!-- AR 에이징 탭 -->
+    <div id="ctab-aging" style="display:none;"><div id="arAgingView"></div></div>
+
+    <!-- Canada 탭 -->
+    <div id="ctab-canada" style="display:none;"><div id="canadaView"></div></div>
+
+    <!-- ITS오차 탭 -->
+    <div id="ctab-itsdiff" style="display:none;"><div id="itsDiffView"></div></div>
+
+    <!-- 월달성 탭 -->
+    <div id="ctab-achievement" style="display:none;"><div id="monthlyAchView"></div></div>
+
+    <!-- 지급예정 탭 -->
+    <div id="ctab-schedule" style="display:none;"><div id="payScheduleView"></div></div>
+
+    <!-- 빠른 수금입력 탭 -->
+    <div id="ctab-quick" style="display:none;"><div id="quickInputView"></div></div>
+
+    <!-- 검증 큐 탭 -->
+    <div id="ctab-verify" style="display:none;"><div id="verifyQueueView"></div></div>
 
   </div>
 </div>
@@ -1094,8 +1158,16 @@
 </div>
 
 
-
-
+<!-- 가게 수금 이력 모달 -->
+<div class="modal-bg" id="storeHistoryModal" onclick="if(event.target===this)closeModal('storeHistoryModal')">
+  <div class="modal" style="max-width:700px;max-height:85vh;overflow-y:auto;">
+    <h3 id="storeHistoryTitle" style="margin-bottom:14px;">가게 수금 이력</h3>
+    <div id="storeHistoryBody"></div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn" onclick="closeModal('storeHistoryModal')">닫기</button>
+    </div>
+  </div>
+</div>
 
 
 <script>
@@ -1596,7 +1668,7 @@ function initSitu() {
 
 // ============= STATE & PERSISTENCE =============
 const LS_KEYS = { sales26:'at_sales_2026', sales25:'at_sales_2025', expenses:'at_expenses', ver:'at_data_ver' };
-const DATA_VER = '20260524c';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
+const DATA_VER = '20260524f';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
 
 // 버전이 다르면 localStorage 완전 초기화 (배치 업데이트 후 구버전 캐시 방지)
 (function checkDataVersion() {
@@ -2212,7 +2284,7 @@ function refreshAll() {
   renderExpenseCatChart();
   renderPriority();
   buildMonthFilters();
-  renderSalesTable(); setTimeout(wrapTables, 100);
+  renderSalesTable(); renderStatusChart(); renderPriority(); renderOutstandingTable(); setTimeout(wrapTables, 100);
   renderExp();
   renderOutstandingTable();
   renderReceiptsTable();
@@ -3133,7 +3205,7 @@ function setupTabs() {
       const pg = document.getElementById('page-' + btn.dataset.page);
       if (pg) { pg.style.display = ''; setTimeout(wrapTables, 50); }
       const p = btn.dataset.page;
-      if (p === 'sales')      { renderKPIs(); renderMonthlyChart(); renderRegionChart(); renderTopStoresChart(); renderSalesTable(); }
+      if (p === 'sales')      { renderKPIs(); renderStatusChart(); renderMonthlyChart(); renderRegionChart(); renderTopStoresChart(); renderSalesTable(); renderPriority(); renderOutstandingTable(); }
       else if (p === 'expenses')   { renderExpKpis(); renderExpenseChart(); renderExpenseCatChart(); renderExp(); }
       else if (p === 'commission') { initCommissionTab(); }
       else if (p === 'cardstrat')  { renderCardPage(); }
@@ -4480,12 +4552,19 @@ function initCommissionTab() {
       document.querySelectorAll('#commTabs .tab').forEach(x => x.classList.remove('active'));
       t.classList.add('active');
       const tab = t.dataset.ctab;
-      ['crdl','outstanding','bystore','monthly'].forEach(id => {
+      ['crdl','outstanding','bystore','monthly','aging','canada','itsdiff','achievement','schedule','quick','verify'].forEach(id => {
         document.getElementById('ctab-'+id).style.display = id===tab ? '' : 'none';
       });
-      if(tab==='monthly') renderCommMonthly();
-      if(tab==='bystore') renderCommByStore();
-      if(tab==='outstanding') renderCommOutstanding();
+      if(tab==='monthly')      renderCommMonthly();
+      if(tab==='bystore')      renderCommByStore();
+      if(tab==='outstanding')  renderCommOutstanding();
+      if(tab==='aging')        renderARAgingPanel();
+      if(tab==='canada')       renderCanadaSection();
+      if(tab==='itsdiff')      renderITSDiff();
+      if(tab==='achievement')  renderMonthlyAchievement();
+      if(tab==='schedule')     renderPaySchedule();
+      if(tab==='quick')        renderQuickReceiptEntry();
+      if(tab==='verify')       { renderVerifyQueue(); updateVerifyBadge(); }
     });
   });
 
