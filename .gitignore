@@ -1,12 +1,29 @@
+# 이미지/원본 파일 (용량 큼)
 📥 처리대기/*.jpg
 📥 처리대기/*.jpeg
 📥 처리대기/*.png
 📥 처리대기/*.heic
 📥 처리대기/*.heif
-✅ 처리완료/
+📥 처리대기/*.DNG
+📦 아카이브/체크/*.jpg
+📦 아카이브/오더장/*.jpg
+📦 아카이브/오더장/*.DNG
+
+# 시스템
 .DS_Store
-*.numbers
 __pycache__/
 *.pyc
-2_FINANCE/
-1_OPERATIONS/
+.sync_state.json
+auto_push.log
+
+# 백업파일 (⚙️ 시스템에 생성 금지 — 삭제검토로 이동)
+*backup*.html
+
+
+# ===== 공개 repo 보호: 사업 민감 데이터는 절대 올리지 않음 =====
+💰 재정/
+📋 영업/
+📦 아카이브/
+📥 처리대기/
+⚙️ 시스템/
+🧾 인보이스 작성기.html
