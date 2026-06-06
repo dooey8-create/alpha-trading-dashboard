@@ -246,7 +246,11 @@ function queueInbox(order){const inbox=JSON.parse(localStorage.getItem('at_order
   const idx=order.invoice_no?inbox.findIndex(o=>o.invoice_no===order.invoice_no):-1;
   if(idx>=0)inbox[idx]=order;else inbox.push(order);
   localStorage.setItem('at_order_inbox',JSON.stringify(inbox));return inbox.length;}
-$('#save').onclick=()=>{const order=buildOrder();learn();window.print();
+$('#save').onclick=()=>{const order=buildOrder();learn();
+  const oldTitle=document.title;
+  if(order){const nm=`${order.date}_${order.store}(${order.id})_$${Math.round(order.total)}`.replace(/[\\/:*?"<>|]/g,'-');document.title=nm;}
+  window.print();
+  setTimeout(()=>{document.title=oldTitle;},900);
   if(order&&order.items.length){queueInbox(order);}bump();};
 $('#exp').onclick=()=>{const order=buildOrder();if(!order){alert('가게를 먼저 선택하세요');return;}
   if(!order.items.length){alert('품목을 입력하세요');return;}
