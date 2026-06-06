@@ -238,7 +238,7 @@ function render(){
    <div class="pbot"><div class="pleg">Pack = units per pack<br>Qty = number of packs<br>Amount = Pack × Qty × Unit Price</div>
    <div class="ptot"><div class="pr"><span>Subtotal</span><span>${money(sub)}</span></div>${extra}<div class="pr grand"><span>TOTAL</span><span class="v">${money(total)}</span></div></div></div>
    <div class="pthanks">Thank you for your business</div>
-   <div class="pmethod"><span class="ml">Shipping:</span><span class="opt">${bx('Visit')} Visit</span><span class="opt">${bx('Self Ship')} Self Ship</span><span class="opt">${bx('Company Ship')} Company Ship</span></div>
+   <div class="pmethod">${ship.s?`<span class="ml">Shipping</span><span class="opt">${ship.s}</span>`:''}</div>
   </div></div>`;
 }
 function learn(){const st=curStore();rows().forEach(r=>{const nm=norm(r.desc);if(nm){if(!allItems().includes(nm))learned.push(nm);if(st&&r.unit)learnedPx[st.store+'|'+nm]=r.unit;}});
