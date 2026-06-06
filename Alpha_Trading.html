@@ -6947,6 +6947,7 @@ function renderTripPage() {
   // 가게+금액 매칭, 정상율(8~20%)만, 1.5%p 초과 차이만
   const under=[], over=[];   // under=적게 받음(확인 필요), over=더 받음(참고)
   const _seenMm = new Set();
+  let _commDismissed; try{_commDismissed=new Set(JSON.parse(localStorage.getItem('at_comm_dismissed')||'[]'));}catch(e){_commDismissed=new Set();}
   let _safeCRDL = []; try { _safeCRDL = CR_DL_DATA || []; } catch(e) {}
   _safeCRDL.forEach(crdl => {
     (crdl.items||[]).forEach(item => {
@@ -6965,12 +6966,14 @@ function renderTripPage() {
       if (Math.abs(diff) <= 0.015) return;
       const key = store+'|'+crdlSale+'|'+Math.round(dash*100)+'|'+Math.round(cp*100);
       if (_seenMm.has(key)) return; _seenMm.add(key);
-      const rec = { store, date:crdl.dp||'', dashPct:Math.round(dash*100), crdlPct:Math.round(cp*100), sale:crdlSale, amt:Math.abs(crdlSale*diff) };
+      if (_commDismissed.has(key)) return;
+      const rec = { store, date:crdl.dp||'', dashPct:Math.round(dash*100), crdlPct:Math.round(cp*100), sale:crdlSale, amt:Math.abs(crdlSale*diff), key, cp };
       (diff > 0 ? under : over).push(rec);
     });
   });
   under.sort((a,b)=>b.amt-a.amt);
   over.sort((a,b)=>b.amt-a.amt);
+  window._underRecs = under;
   const underTot = under.reduce((s,m)=>s+m.amt,0);
   const overTot  = over.reduce((s,m)=>s+m.amt,0);
   const mEl = document.getElementById('tripMismatchList');
@@ -6980,10 +6983,14 @@ function renderTripPage() {
     _html += '<div style="color:var(--green);padding:8px 0;">✅ 과소지급 없음 (적게 받은 건 없음)</div>';
   } else {
     _html += `<div style="font-size:12px;font-weight:700;margin-bottom:6px;">💸 과소지급 의심 ${under.length}건 · 누적 손실 추정 <span style="color:#E24B4A;">$${underTot.toFixed(2)}</span> <span style="color:var(--muted);font-weight:400;">— 확인 필요</span></div>`
-      + under.slice(0,12).map(m=>
-        `<div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;">
-          🔻 <b>${m.store}</b> <span style="color:var(--muted);">${m.date} $${m.sale}</span>
-          <span style="float:right;">대시 ${m.dashPct}% → CRDL ${m.crdlPct}% <b style="color:#E24B4A;">−$${m.amt.toFixed(2)}</b></span>
+      + under.slice(0,12).map((m,i)=>
+        `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;">
+          <div>🔻 <b>${m.store}</b> <span style="color:var(--muted);">${m.date} $${m.sale}</span>
+          <span style="float:right;">대시 ${m.dashPct}% → CRDL ${m.crdlPct}% <b style="color:#E24B4A;">−$${m.amt.toFixed(2)}</b></span></div>
+          <div style="margin-top:5px;text-align:right;">
+            <button onclick="applyCommFix(${i})" class="btn btn-sm" style="background:var(--green,#10b981);color:#fff;font-size:10px;padding:4px 9px;">✅ 적용 (${m.crdlPct}%로 수정)</button>
+            <button onclick="dismissCommFix(${i})" class="btn btn-sm" style="font-size:10px;padding:4px 9px;margin-left:4px;">🙈 무시</button>
+          </div>
         </div>`).join('')
       + (under.length>12?`<div style="font-size:11px;color:var(--muted);padding-top:4px;">외 ${under.length-12}건</div>`:'');
   }
@@ -7059,6 +7066,60 @@ function renderTripPage() {
   document.getElementById('tripSubLabel').textContent =
     `${trips.length}번 출장 · 총 커미션 ${fmt(totalCommAll)} · 경비 ${fmt(totalExpAll)}`;
 }
+
+// ===== 인보이스 인박스 (앱에서 만든 주문 검토 후 반영) =====
+const INBOX_KEY='at_order_inbox';
+function loadInbox(){try{return JSON.parse(localStorage.getItem(INBOX_KEY)||'[]');}catch(e){return [];}}
+function saveInbox(a){localStorage.setItem(INBOX_KEY,JSON.stringify(a));}
+function inboxToSale(o){
+  const isBSW=/BSW/i.test(o.store||'');
+  const pct=(o.commission_pct>1?o.commission_pct/100:o.commission_pct)||0;
+  const date=o.date||new Date().toISOString().slice(0,10);
+  const sales=+(o.total||o.subtotal||0);
+  return {_id:'s'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+    date,store:`${o.store}(${o.id})`,sales,comm_pct:pct,commission:+(sales*pct).toFixed(2),
+    status:isBSW?'red':'green',deposit_date:null,gas:0,hotel:0,
+    region:o.region||'Other',month:date.slice(5,7),
+    notes:`인보이스 #${o.invoice_no||''} (${o.shipping||''})`.trim()};
+}
+function renderInboxBanner(){
+  const inbox=loadInbox(); let box=document.getElementById('inboxBanner');
+  if(!inbox.length){ if(box)box.remove(); return; }
+  if(!box){ box=document.createElement('div'); box.id='inboxBanner';
+    box.style.cssText='margin:0 0 14px;border:1px solid var(--blue,#3b82f6);background:#eef5ff;border-radius:12px;padding:12px 14px';
+    const c=document.querySelector('.container'); c.insertBefore(box, c.children[1]||null); }
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <b style="font-size:14px">📥 새 주문 ${inbox.length}건 · 인보이스 앱</b>
+    <span style="font-size:11px;color:var(--muted)">검토 후 반영</span></div>`+
+    inbox.map((o,i)=>{const s=inboxToSale(o);return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--border);padding:7px 0;font-size:13px;flex-wrap:wrap">
+      <div><b>${s.store}</b> · ${s.date} · <b>$${s.sales.toLocaleString()}</b> <span style="color:var(--muted);font-size:11px">${o.shipping||''} ${Math.round(s.comm_pct*100)}% · ${s.status}</span></div>
+      <div style="flex:0 0 auto"><button onclick="applyInbox(${i})" class="btn btn-sm" style="background:var(--green,#10b981);color:#fff;font-size:11px;padding:5px 11px">반영</button>
+      <button onclick="dismissInbox(${i})" class="btn btn-sm" style="font-size:11px;padding:5px 11px;margin-left:5px">삭제</button></div></div>`;}).join('');
+}
+function applyInbox(i){const inbox=loadInbox();const o=inbox[i];if(!o)return;
+  SALES_2026.push(inboxToSale(o)); persistAll(); inbox.splice(i,1); saveInbox(inbox);
+  if(typeof refreshAll==='function')refreshAll(); renderInboxBanner();
+  if(typeof toast==='function')toast('주문 반영됨');}
+function dismissInbox(i){const inbox=loadInbox(); inbox.splice(i,1); saveInbox(inbox); renderInboxBanner();}
+
+// ===== 커미션 의심건 ①적용(수정) ②무시(보류) =====
+function _commDismiss(key){const d=JSON.parse(localStorage.getItem('at_comm_dismissed')||'[]'); if(!d.includes(key))d.push(key); localStorage.setItem('at_comm_dismissed',JSON.stringify(d));}
+function applyCommFix(i){
+  const m=(window._underRecs||[])[i]; if(!m){return;}
+  const row=SALES_2026.find(s=>s.store===m.store && Math.abs((s.sales||0)-m.sale)/Math.max(m.sale,1)<0.05);
+  if(!row){ if(typeof toast==='function')toast('대상 매출행을 찾지 못함','error'); return; }
+  row.comm_pct=m.cp; if(typeof recomputeRow==='function')recomputeRow(row); persistAll();
+  _commDismiss(m.key);
+  if(typeof toast==='function')toast(`${m.store} 커미션 ${m.crdlPct}%로 수정됨`);
+  if(typeof renderTripPage==='function')renderTripPage(); if(typeof refreshAll==='function')refreshAll();
+}
+function dismissCommFix(i){
+  const m=(window._underRecs||[])[i]; if(!m){return;}
+  _commDismiss(m.key);
+  if(typeof toast==='function')toast(`${m.store} 보류(무시)됨`);
+  if(typeof renderTripPage==='function')renderTripPage();
+}
+try{ renderInboxBanner(); window.addEventListener('focus',renderInboxBanner); }catch(e){console.warn('inbox',e);}
 
 </script>
 </body>

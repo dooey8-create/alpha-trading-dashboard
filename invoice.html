@@ -119,10 +119,10 @@ input:focus{outline:none;border-color:var(--cyan)}
     </div>
     <div class="actions">
       <button class="btn save" id="save">💾 PDF 저장/인쇄</button>
-      <button class="btn dash" id="exp">📤 대시보드용 저장</button>
+      <button class="btn dash" id="exp">📤 대시보드로 보내기</button>
     </div>
     <div class="actions2"><button class="btn undo small" id="undo" style="display:none">↩︎ 되돌리기</button><button class="btn reset small" id="reset">초기화</button></div>
-    <div class="hint">• <b>품목칸/가게칸을 한 번 누르면</b> 목록이 바로 열림 → 선택하거나 입력해서 검색.<br>• 가게+품목 알면 단가 자동. 새 품목은 자동 학습돼 다음에 뜸.<br>• <b>💾 PDF 저장</b> = 인보이스만 인쇄/PDF. <b>📤 대시보드용 저장</b> = 주문 데이터 파일을 받아 처리대기에 넣으면 대시보드에 반영됨.</div>
+    <div class="hint">• <b>품목칸/가게칸을 한 번 누르면</b> 목록이 바로 열림 → 선택하거나 입력해서 검색.<br>• 가게+품목 알면 단가 자동. 새 품목은 자동 학습돼 다음에 뜸.<br>• <b>💾 PDF 저장</b> = 인쇄/PDF + 자동으로 대시보드 인박스에 추가(처리완료 대기). <b>📤 대시보드로 보내기</b> = 주문이 대시보드 인박스에 바로 쌓임 → 대시보드 앱에서 검토 후 반영(파일 저장·이동 불필요).</div>
   </div>
   <div class="pane" id="pv"></div>
 </div>
@@ -237,20 +237,21 @@ function render(){
 function learn(){const st=curStore();rows().forEach(r=>{const nm=norm(r.desc);if(nm){if(!allItems().includes(nm))learned.push(nm);if(st&&r.unit)learnedPx[st.store+'|'+nm]=r.unit;}});
   localStorage.setItem(LS.items,JSON.stringify([...new Set(learned)]));localStorage.setItem(LS.prices,JSON.stringify(learnedPx));}
 function bump(){const n=parseInt($('#invno').value,10);if(!isNaN(n)){localStorage.setItem(LS.no,n+1);$('#invno').value=n+1;}render();}
-$('#save').onclick=()=>{learn();window.print();bump();};
-$('#exp').onclick=()=>{
-  const st=curStore();const {rs,sub,disc,ret,total}=calc();
-  if(!st){alert('가게를 먼저 선택하세요');return;}
-  const order={invoice_no:$('#invno').value,date:$('#date').value,store:st.name,id:st.id,
+function buildOrder(){const st=curStore();if(!st)return null;const {rs,sub,disc,ret,total}=calc();
+  return {invoice_no:$('#invno').value,date:$('#date').value,store:st.name,id:st.id,
     address:st.addr,csz:st.csz,region:st.region,shipping:ship.s,commission_pct:ship.r,
-    items:rs.filter(r=>r.desc&&r.qty),discount:disc,return:ret,subtotal:sub,total:total,source:'invoice_builder'};
-  learn();
-  const blob=new Blob([JSON.stringify(order,null,1)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`ORDER_${(st.name+'('+st.id+')').replace(/[\\/:*?"<>|]/g,'')}_${$('#date').value}.json`;
-  document.body.appendChild(a);a.click();a.remove();
-  alert('주문 데이터 저장됨 → 이 파일을 📥 처리대기 폴더에 넣으면 대시보드에 반영됩니다.');bump();
-};
+    items:rs.filter(r=>r.desc&&r.qty),discount:disc,return:ret,subtotal:sub,total:total,
+    source:'invoice_builder',_ts:Date.now()};}
+function queueInbox(order){const inbox=JSON.parse(localStorage.getItem('at_order_inbox')||'[]');
+  const idx=order.invoice_no?inbox.findIndex(o=>o.invoice_no===order.invoice_no):-1;
+  if(idx>=0)inbox[idx]=order;else inbox.push(order);
+  localStorage.setItem('at_order_inbox',JSON.stringify(inbox));return inbox.length;}
+$('#save').onclick=()=>{const order=buildOrder();learn();window.print();
+  if(order&&order.items.length){queueInbox(order);}bump();};
+$('#exp').onclick=()=>{const order=buildOrder();if(!order){alert('가게를 먼저 선택하세요');return;}
+  if(!order.items.length){alert('품목을 입력하세요');return;}
+  learn();const n=queueInbox(order);
+  alert('📥 대시보드 인박스에 추가됨 ('+n+'건 대기)\n대시보드 앱에서 검토 후 반영하세요.');bump();};
 let undoState=null;
 function snapshot(){return {rows:rows(),store:$('#store').value,disc:$('#disc').value,ret:$('#ret').value,ship:{...ship},invno:$('#invno').value,date:$('#date').value};}
 function restoreState(s){$('#rows').innerHTML='';(s.rows||[]).forEach(r=>addRow(r.desc,r.pack,r.qty,r.unit));if(!s.rows||!s.rows.length){addRow();addRow();}
