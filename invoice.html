@@ -58,18 +58,18 @@ input:focus{outline:none;border-color:var(--cyan)}
 .paper{background:#fff;color:#1a1a1a;border-radius:8px;width:540px;max-width:100%;margin:0 auto;font-family:"Helvetica Neue",Arial,sans-serif;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .topband{height:8px;background:linear-gradient(90deg,var(--ink),#34d399)}
 .pinner{padding:30px 30px 34px}
-.pt{display:flex;justify-content:space-between;align-items:center}
+.pt{display:none}.hrow{display:flex;justify-content:space-between;align-items:center;gap:18px}.hrow>*{flex:1 1 0;min-width:0}.r1{margin-bottom:14px}.r2{min-height:46px;margin-bottom:4px}.r3{min-height:46px}.rcell{display:flex;align-items:center;justify-content:flex-end;gap:9px}
 .logorow{display:flex;align-items:center;gap:11px}
 .logo{width:40px;height:40px;border-radius:9px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;letter-spacing:-1px}
 .brand{font-size:22px;font-weight:900;color:#1a1a1a;letter-spacing:-.6px;line-height:1.05}
-.caddr{font-size:11px;color:#555;font-weight:500;margin-top:11px;line-height:1.6}
-.meta{text-align:right}.invtitle{font-size:32px;font-weight:900;color:#bcd0e4;letter-spacing:-1px;line-height:.9;margin-bottom:7px}
-.plab{font-size:9px;color:#999;font-weight:700;letter-spacing:.8px}
-.pcell{display:inline-block;border:1.5px solid var(--ink);border-radius:5px;padding:3px 10px;margin-top:2px;min-width:110px;text-align:center;background:#ecfdf5;font-size:14px;font-weight:800;color:#047857}
+.caddr{font-size:11px;color:#555;font-weight:500;margin:0;line-height:1.55}
+.invtitle{font-size:36px;font-weight:900;color:#bcd0e4;letter-spacing:-1px;line-height:.9;margin:0;text-align:right}
+.plab{font-size:10px;color:#999;font-weight:700;letter-spacing:.8px;white-space:nowrap;display:inline-block;width:56px;text-align:right}
+.pcell{display:inline-block;border:1px solid var(--ink);border-radius:6px;padding:9px 12px;text-align:center;width:150px;white-space:nowrap;background:#ecfdf5;font-size:16px;font-weight:800;color:#047857}
 .billrow{display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px;gap:18px}
 .pl{font-size:9px;color:#999;font-weight:700;letter-spacing:.8px}
-.sbox{display:inline-block;border:2px solid var(--ink);border-radius:7px;padding:5px 13px;font-size:16px;font-weight:900;background:#ecfdf5;color:#15243a;margin-top:4px}
-.paddr{font-size:13px;color:#333;font-weight:600;margin-top:6px}.paddr .zip{background:#d1fae5;padding:0 4px;border-radius:3px}
+.sbox{display:inline-block;border:1px solid var(--ink);border-radius:7px;padding:5px 13px;font-size:16px;font-weight:900;background:#ecfdf5;color:#15243a;margin-top:4px}
+.paddr{font-size:13px;color:#333;font-weight:600;margin-top:6px}.paddr .zip{}
 .pdate{text-align:right;white-space:nowrap}
 .ptab{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
 .ptab th{background:var(--ink);color:#fff;padding:9px 8px;text-align:left;font-size:10px;font-weight:700;border:1px solid #3a9c78}
@@ -81,10 +81,10 @@ input:focus{outline:none;border-color:var(--cyan)}
 .pleg{font-size:8px;color:#aaa;line-height:1.7}
 .ptot{width:230px;font-size:12px}.ptot .pr{display:flex;justify-content:space-between;padding:5px 2px;color:#555}
 .ptot .pr.disc{color:#b3261e}
-.ptot .pr.grand{border-top:2px solid #1a1a1a;margin-top:5px;padding-top:9px;font-size:14px;font-weight:900;color:#1a1a1a;align-items:center}
-.ptot .pr.grand .v{font-size:17px;border:2px solid var(--ink);border-radius:6px;padding:4px 16px;background:#ecfdf5;color:var(--ink)}
-.pthanks{font-size:11px;font-weight:600;color:#aaa;margin-top:24px}
-.pmethod{display:flex;gap:16px;font-size:10.5px;margin-top:18px;align-items:center;border-top:1px dashed #ddd;padding-top:9px;color:#555}
+.ptot .pr.grand{border:1px solid var(--ink);border-radius:6px;background:#ecfdf5;margin-top:7px;padding:6px 11px;font-size:14px;font-weight:900;color:var(--ink);align-items:center}
+.ptot .pr.grand .v{font-size:16px;border:none;background:none;padding:0;color:var(--ink)}
+.botline{display:flex;justify-content:space-between;align-items:center;margin-top:26px;border-bottom:1px dashed #ddd;padding-bottom:10px;gap:16px}.pthanks{font-size:11px;font-weight:600;color:#aaa}
+.pmethod{display:flex;gap:8px;font-size:10.5px;align-items:center;color:#555;white-space:nowrap}
 .pmethod .ml{font-weight:700;color:#333}
 .pmethod .opt{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .pmethod .box{width:12px;height:12px;border:1.5px solid #888;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;color:#333;font-size:9px;flex-shrink:0}
@@ -226,19 +226,15 @@ function render(){
   const bx=k=>`<span class="box">${ship.s===k?'✓':''}</span>`;
   $('#comm').innerHTML='커미션: <b>'+money(sub*ship.r/100)+'</b>'+(ship.s?' ('+ship.r+'%)':'');
   $('#pv').innerHTML=`<div class="paper"><div class="topband"></div><div class="pinner">
-   <div class="pt"><div><div class="logorow"><div class="logo">IB</div><div class="brand">It's Beauty Inc.</div></div>
-   <div class="caddr">41 Bancker St, Englewood, NJ 07631<br><b>Steven Lee</b>, Sales Manager &nbsp;·&nbsp; Tel 253-397-0748</div></div>
-   <div class="meta"><div class="invtitle">INVOICE</div><div class="plab">INVOICE #</div><div class="pcell">${$('#invno').value||''}</div></div></div>
-   <div class="billrow"><div><div class="pl">BILL TO</div><span class="sbox">${sline}</span>
-   <div class="paddr">${st?((st.addr||'')+(csz?', '+csz:'')):''}</div></div>
-   <div class="pdate"><div class="pl">DATE</div><div class="pcell">${dt||''}</div></div></div>
+   <div class="hrow r1"><div class="logorow"><div class="logo">IB</div><div class="brand">It's Beauty Inc.</div></div><div class="invtitle">INVOICE</div></div>
+   <div class="hrow r2"><div class="caddr">41 Bancker St, Englewood, NJ 07631<br>Sales Manager &nbsp;<b>Steven Lee</b> &nbsp;&middot;&nbsp; Tel 253-397-0748</div><div class="rcell"><span class="plab">INVOICE #</span><span class="pcell">${$('#invno').value||''}</span></div></div>
+   <div class="hrow r3"><div><div class="pl">BILL TO</div><span class="sbox">${sline}</span><div class="paddr">${st?((st.addr||'')+(csz?', '+csz:'')):''}</div></div><div class="rcell"><span class="plab">DATE</span><span class="pcell">${dt||''}</span></div></div>
    <table class="ptab"><colgroup><col><col style="width:38px"><col style="width:38px"><col style="width:88px"><col style="width:92px"></colgroup>
    <thead><tr><th>Description</th><th class="c">Pack</th><th class="c">Qty</th><th class="n">Unit Price</th><th class="n">Amount</th></tr></thead>
    <tbody>${trs||'<tr><td class="itx" style="color:#ccc">—</td><td></td><td></td><td></td><td></td></tr>'}</tbody></table>
-   <div class="pbot"><div class="pleg">Pack = units per pack<br>Qty = number of packs<br>Amount = Pack × Qty × Unit Price</div>
+   <div class="pbot"><div class="pleg">Pack = units per pack · Qty = number of packs<br>Amount = Pack × Qty × Unit Price</div>
    <div class="ptot"><div class="pr"><span>Subtotal</span><span>${money(sub)}</span></div>${extra}<div class="pr grand"><span>TOTAL</span><span class="v">${money(total)}</span></div></div></div>
-   <div class="pthanks">Thank you for your business</div>
-   <div class="pmethod">${ship.s?`<span class="ml">Shipping</span><span class="opt">${ship.s}</span>`:''}</div>
+   <div class="botline"><span class="pthanks">Thank you for your business</span>${ship.s?`<span class="pmethod"><span class="ml">Shipping</span><span class="opt">${ship.s}</span></span>`:''}</div>
   </div></div>`;
 }
 function learn(){const st=curStore();rows().forEach(r=>{const nm=norm(r.desc);if(nm){if(!allItems().includes(nm))learned.push(nm);if(st&&r.unit)learnedPx[st.store+'|'+nm]=r.unit;}});

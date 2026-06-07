@@ -1865,7 +1865,7 @@ function initSitu() {
 
 // ============= STATE & PERSISTENCE =============
 const LS_KEYS = { sales26:'at_sales_2026', sales25:'at_sales_2025', expenses:'at_expenses', ver:'at_data_ver', receipts:'at_receipts' };
-const DATA_VER = '20260607p';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
+const DATA_VER = '20260607q';  // 업데이트할 때마다 변경 → localStorage 자동 초기화
 
 // 버전이 다르면 localStorage 완전 초기화 (배치 업데이트 후 구버전 캐시 방지)
 (function checkDataVersion() {
@@ -6691,7 +6691,7 @@ function renderCommMonthly() {
   window.addEventListener('resize', function() { if(window.innerWidth<=480) wrapTables(); });
 
   // ============= 추천 루트 =============
-  const REGION_ORDER = ['Boston','Upstate NY','NYC/NJ','Delaware','Ohio','Other'];
+  const REGION_ORDER = ['Boston','Upstate NY','East NY','NYC/NJ','CT/MA/RI','Ohio/Pittsburgh','Delaware','Other'];
   const REGION_EMOJI = {'Boston':'🟦','NYC/NJ':'🟧','Delaware':'🟩','Ohio':'🟥','Other':'⬜','Canada':'🍁'};
   const REGION_LABEL = {'Boston':'Boston (MA)','NYC/NJ':'NYC / NJ','Delaware':'Delaware','Ohio':'Ohio','Other':'Other','Canada':'Canada'};
 
