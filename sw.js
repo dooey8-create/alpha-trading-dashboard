@@ -1,4 +1,4 @@
-const C='ib-apps-v4';
+const C='ib-apps-v5';
 const ASSETS=['./invoice.html','./Alpha_Sales.html',
 './assets/icon-180.png','./assets/icon-512.png','./assets/manifest.webmanifest',
 './assets/icon-sales-180.png','./assets/icon-sales-512.png','./assets/manifest_sales.webmanifest'];
@@ -7,8 +7,8 @@ self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.
 self.addEventListener('fetch',e=>{
   const isHTML=e.request.mode==='navigate'||(e.request.headers.get('accept')||'').includes('text/html');
   if(isHTML){
-    // HTML: 네트워크 우선(항상 최신) → 오프라인이면 캐시
-    e.respondWith(fetch(e.request).then(resp=>{const cp=resp.clone();caches.open(C).then(c=>c.put(e.request,cp));return resp;})
+    // HTML: 네트워크 우선 + 브라우저 HTTP캐시 우회(no-store) → 오프라인이면 캐시
+    e.respondWith(fetch(e.request,{cache:'no-store'}).then(resp=>{const cp=resp.clone();caches.open(C).then(c=>c.put(e.request,cp));return resp;})
       .catch(()=>caches.match(e.request).then(r=>r||caches.match(e.request.url.includes('Alpha_Sales')?'./Alpha_Sales.html':'./invoice.html'))));
   }else{
     // 아이콘 등 정적 파일: 캐시 우선
