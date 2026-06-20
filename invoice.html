@@ -299,7 +299,9 @@ $('#reset').onclick=()=>{undoState=snapshot();$('#rows').innerHTML='';$('#store'
 $('#undo').onclick=()=>{if(undoState){restoreState(undoState);undoState=null;$('#undo').style.display='none';}};
 let showComm=false;
 $('#commtog').onclick=()=>{showComm=!showComm;$('#comm').classList.toggle('commhide',!showComm);$('#commtog').textContent=showComm?'💰 커미션 숨기기':'💰 커미션 보기';};
-$('#invno').value=localStorage.getItem(LS.no)||'252610';
+// 서버에서 생성한 인보이스 반영용 최소번호 floor (마지막 발행 #200012 다음). 새 인보이스 발행 시 이 값을 갱신.
+const MIN_INVNO=200013;
+{let _v=parseInt(localStorage.getItem(LS.no),10); if(isNaN(_v)||_v<MIN_INVNO)_v=MIN_INVNO; $('#invno').value=_v; localStorage.setItem(LS.no,String(_v));}
 $('#invno').addEventListener('input',()=>{const v=$('#invno').value.trim();if(v)localStorage.setItem(LS.no,v);});
 $('#date').value=new Date().toISOString().slice(0,10);
 // ── 작성분 자동저장(draft) + 템플릿 ──
