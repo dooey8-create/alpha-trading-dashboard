@@ -47,7 +47,7 @@ input:focus{outline:none;border-color:var(--cyan)}
 /* custom autocomplete */
 .acw{position:relative}
 .acw.pkw .acdd{right:auto;width:84px}
-.acdd{position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:60;background:#11161f;border:1px solid var(--cyan);border-radius:8px;max-height:240px;overflow:auto;display:none;box-shadow:0 10px 26px rgba(0,0,0,.55)}
+.acdd{position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:60;background:#11161f;border:1px solid var(--cyan);border-radius:8px;max-height:240px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;display:none;box-shadow:0 10px 26px rgba(0,0,0,.55)}
 .acdd.show{display:block}
 .acdd .o{padding:10px 11px;font-size:13.5px;color:var(--txt);cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px}
 .acdd .o:last-child{border-bottom:none}
@@ -182,7 +182,11 @@ function attachAC(input, optionsFn, onPick){
     dd.innerHTML=opts.map((o,i)=>`<div class="o" data-i="${i}">${o.label}${o.sub?`<small>${o.sub}</small>`:''}</div>`).join('')||'<div class="o"><em>일치 항목 없음 (새로 입력하면 저장됨)</em></div>';
     dd.querySelectorAll('.o[data-i]').forEach(el=>{
       el.addEventListener('mousedown',e=>{e.preventDefault();pick(+el.dataset.i);});
-      el.addEventListener('touchstart',e=>{e.preventDefault();pick(+el.dataset.i);},{passive:false});
+      // 터치: 드래그(스크롤)와 탭(선택) 구분 — 움직였으면 선택 안 함
+      let tx=0,ty=0,moved=false;
+      el.addEventListener('touchstart',e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;moved=false;},{passive:true});
+      el.addEventListener('touchmove',e=>{const t=e.touches[0];if(Math.abs(t.clientY-ty)>8||Math.abs(t.clientX-tx)>8)moved=true;},{passive:true});
+      el.addEventListener('touchend',e=>{if(!moved){e.preventDefault();pick(+el.dataset.i);}},{passive:false});
     });
     dd.classList.add('show');hi=-1;
   }
