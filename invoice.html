@@ -47,7 +47,11 @@ input:focus{outline:none;border-color:var(--cyan)}
 /* custom autocomplete */
 .acw{position:relative}
 .acw.pkw .acdd{right:auto;width:84px}
-.acdd{position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:60;background:#11161f;border:1px solid var(--cyan);border-radius:8px;max-height:240px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;display:none;box-shadow:0 10px 26px rgba(0,0,0,.55)}
+.acdd{position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:60;background:#11161f;border:1px solid var(--cyan);border-radius:8px;max-height:240px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;display:none;box-shadow:0 10px 26px rgba(0,0,0,.55);scrollbar-width:none}
+.acdd::-webkit-scrollbar{width:0;height:0;display:none}
+.acsb{position:absolute;width:10px;z-index:62;display:none;background:rgba(255,255,255,.10);border-radius:6px}
+.acsb-th{position:absolute;left:0;width:10px;background:var(--cyan);border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.35);cursor:grab}
+.acsb-th:active{background:#67e8f9;cursor:grabbing}
 .acdd.show{display:block}
 .acdd .o{padding:10px 11px;font-size:13.5px;color:var(--txt);cursor:pointer;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px}
 .acdd .o:last-child{border-bottom:none}
@@ -173,6 +177,30 @@ function packFor(itemName){const g=DATA.items.find(i=>i.name===norm(itemName));r
 function attachAC(input, optionsFn, onPick){
   const dd=document.createElement('div');dd.className='acdd';
   input.parentNode.appendChild(dd);
+  // 커스텀 스크롤바 (iPad에서도 항상 보이고 드래그 가능)
+  const sb=document.createElement('div');sb.className='acsb';
+  const th=document.createElement('div');th.className='acsb-th';
+  sb.appendChild(th);input.parentNode.appendChild(sb);
+  function updateSB(){
+    if(!dd.classList.contains('show')){sb.style.display='none';return;}
+    const ch=dd.clientHeight, sh=dd.scrollHeight;
+    if(sh<=ch+2){sb.style.display='none';return;}
+    sb.style.display='block';
+    sb.style.top=dd.offsetTop+'px';
+    sb.style.left=(dd.offsetLeft+dd.offsetWidth-13)+'px';
+    sb.style.height=ch+'px';
+    const thh=Math.max(34, ch*ch/sh), maxT=ch-thh;
+    th.style.height=thh+'px';
+    th.style.transform='translateY('+(dd.scrollTop/(sh-ch))*maxT+'px)';
+  }
+  dd.addEventListener('scroll',updateSB,{passive:true});
+  let drag=null;
+  const dStart=y=>drag={y,top:dd.scrollTop};
+  const dMove=y=>{if(!drag)return;const ch=dd.clientHeight,sh=dd.scrollHeight,thh=Math.max(34,ch*ch/sh);dd.scrollTop=drag.top+(y-drag.y)*((sh-ch)/(ch-thh));};
+  th.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();dStart(e.touches[0].clientY);},{passive:false});
+  th.addEventListener('touchmove',e=>{e.preventDefault();dMove(e.touches[0].clientY);},{passive:false});
+  window.addEventListener('touchend',()=>{drag=null;});
+  th.addEventListener('mousedown',e=>{e.preventDefault();dStart(e.clientY);const mm=ev=>dMove(ev.clientY),mu=()=>{drag=null;window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu);};window.addEventListener('mousemove',mm);window.addEventListener('mouseup',mu);});
   let hi=-1, opts=[];
   function build(){
     const q=norm(input.value);
@@ -188,20 +216,20 @@ function attachAC(input, optionsFn, onPick){
       el.addEventListener('touchmove',e=>{const t=e.touches[0];if(Math.abs(t.clientY-ty)>8||Math.abs(t.clientX-tx)>8)moved=true;},{passive:true});
       el.addEventListener('touchend',e=>{if(!moved){e.preventDefault();pick(+el.dataset.i);}},{passive:false});
     });
-    dd.classList.add('show');hi=-1;
+    dd.classList.add('show');hi=-1;dd.scrollTop=0;requestAnimationFrame(updateSB);
   }
-  function pick(i){if(!opts[i])return;input.value=opts[i].value;dd.classList.remove('show');onPick&&onPick(opts[i]);}
+  function pick(i){if(!opts[i])return;input.value=opts[i].value;dd.classList.remove('show');updateSB();onPick&&onPick(opts[i]);}
   input.addEventListener('focus',build);
   input.addEventListener('click',build);
   input.addEventListener('input',()=>{build();});
-  input.addEventListener('blur',()=>setTimeout(()=>dd.classList.remove('show'),180));
+  input.addEventListener('blur',()=>setTimeout(()=>{dd.classList.remove('show');updateSB();},180));
   input.addEventListener('keydown',e=>{
     if(!dd.classList.contains('show'))return;
     const els=dd.querySelectorAll('.o[data-i]');
     if(e.key==='ArrowDown'){hi=Math.min(hi+1,els.length-1);}
     else if(e.key==='ArrowUp'){hi=Math.max(hi-1,0);}
     else if(e.key==='Enter'){if(hi>=0){e.preventDefault();pick(hi);}return;}
-    else if(e.key==='Escape'){dd.classList.remove('show');return;}
+    else if(e.key==='Escape'){dd.classList.remove('show');updateSB();return;}
     else return;
     els.forEach((el,i)=>el.classList.toggle('hi',i===hi));
     if(els[hi])els[hi].scrollIntoView({block:'nearest'});

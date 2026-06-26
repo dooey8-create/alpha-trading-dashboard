@@ -80,7 +80,7 @@
   th { text-align:left; font-weight:600; padding:10px 8px; border-bottom:1px solid var(--border); color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.3px; cursor:pointer; user-select:none; background:var(--card); position:sticky; top:0; z-index:1; }
   th:hover { color:var(--text); }
   td { padding:10px 8px; border-bottom:1px solid var(--c-gray-bg); }
-  tr:hover td { background:#fafbfd; }
+  tr:hover td { background:var(--c-gray-bg); }
   .num { text-align:right; font-variant-numeric:tabular-nums; }
   .status-pill { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
   .status-blue { background:var(--c-blue-bg); color:var(--c-blue-tx); }
@@ -90,8 +90,8 @@
   .cat-pill { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
   .cat-gas { background:var(--amber-bg); color:var(--amber-text); }
   .cat-hotel { background:var(--c-blue-bg); color:var(--c-blue-tx); }
-  .cat-food { background:#fce7f3; color:var(--c-red-tx); }
-  .cat-toll { background:#e0e7ff; color:var(--c-purple-tx); }
+  .cat-food { background:var(--c-purple-bg); color:var(--c-red-tx); }
+  .cat-toll { background:var(--c-purple-bg); color:var(--c-purple-tx); }
   .cat-parking { background:var(--c-purple-bg); color:var(--c-purple-tx); }
   .cat-car { background:var(--c-green-bg); color:var(--c-green-tx); }
   .cat-fixed { background:var(--c-red-bg); color:var(--c-red-tx); }
@@ -192,14 +192,14 @@
   .pill-amber { background:var(--amber-bg); color:var(--amber-text); }
   .pill-purple { background:var(--c-purple-bg); color:var(--c-purple-tx); }
   .pill-imm { background:var(--c-gray-bg); color:var(--c-gray-tx); }
-  .pill-region { background:#e0e7ff; color:var(--c-purple-tx); }
+  .pill-region { background:var(--c-purple-bg); color:var(--c-purple-tx); }
 
   .chart-box { position:relative; height:260px; }
 
   table { width:100%; border-collapse:collapse; font-size:12px; }
   th { text-align:left; font-weight:600; padding:8px 6px; border-bottom:1px solid var(--border); color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.3px; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--card); z-index:1; }
   td { padding:8px 6px; border-bottom:1px solid var(--line); }
-  tr:hover td { background:#fafbfd; }
+  tr:hover td { background:var(--c-gray-bg); }
   .num { text-align:right; font-variant-numeric:tabular-nums; }
   .priority-bar { height:6px; background:var(--line); border-radius:3px; overflow:hidden; }
   .priority-bar .fill { height:100%; border-radius:3px; }
@@ -1049,7 +1049,7 @@
           ✗ 로열티 포인트 미적립<br>✗ 멤버 혜택 없음<br>✗ 5x 기회 손실
         </div>
       </div>
-      <div style="border:2px solid #6366f1;border-radius:10px;padding:14px;background:#eef2ff;">
+      <div style="border:2px solid #6366f1;border-radius:10px;padding:14px;background:var(--c-purple-bg);">
         <div style="font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:6px;">🏆 추천: Chase Travel 포털</div>
         <div style="font-size:26px;font-weight:900;color:#6366f1;">5x <span style="font-size:13px;">+ $50 크레딧</span></div>
         <div style="font-size:11px;color:var(--c-purple-tx);margin-top:6px;line-height:1.6;">
@@ -1084,7 +1084,7 @@
         <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">BSW-CHILI, BSW-RIDGE, BSW-UPPERFALLS, BSW-AVON</div>
         <div style="font-size:11px;line-height:1.8;">
           <div>· <b>Home2 Suites Henrietta</b> <span style="background:var(--c-purple-bg);color:var(--c-purple-tx);font-size:11px;padding:1px 5px;border-radius:3px;">Hilton</span> ★★★ — 무료조식</div>
-          <div>· <b>Microtel Inn Chili/Airport</b> <span style="background:#ecfdf5;color:var(--c-green-tx);font-size:11px;padding:1px 5px;border-radius:3px;">Wyndham</span> ★★★ — 가성비 최고</div>
+          <div>· <b>Microtel Inn Chili/Airport</b> <span style="background:var(--c-green-bg);color:var(--c-green-tx);font-size:11px;padding:1px 5px;border-radius:3px;">Wyndham</span> ★★★ — 가성비 최고</div>
           <div>· <b>Courtyard Rochester West/Chili</b> <span style="background:var(--c-blue-bg);color:var(--c-blue-tx);font-size:11px;padding:1px 5px;border-radius:3px;">Marriott</span> ★★★</div>
         </div>
       </div>
@@ -1118,7 +1118,7 @@
         <div style="font-size:20px;font-weight:800;color:#10b981;">3-5¢/gal</div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">최저가 주유소 찾기 · 무료 GasBuddy 카드 시 추가 3¢</div>
       </div>
-      <div style="border:1.5px solid #7c3aed;border-radius:10px;padding:12px;background:#faf5ff;">
+      <div style="border:1.5px solid #7c3aed;border-radius:10px;padding:12px;background:var(--c-purple-bg);">
         <div style="width:22px;height:22px;border-radius:50%;background:#7c3aed;color:white;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;">2</div>
         <div style="font-weight:700;font-size:12px;margin-bottom:4px;">📱 Upside 앱</div>
         <div style="font-size:20px;font-weight:800;color:var(--c-purple-tx);">15-25¢/gal</div>
@@ -1283,7 +1283,7 @@
       <div class="form-row">
         <label>입금일 (선택)</label>
         <input type="date" id="sf_deposit">
-        <div id="sf_deposit_hint" style="display:none; margin-top:5px; font-size:12px; padding:6px 10px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:var(--c-blue-tx);">
+        <div id="sf_deposit_hint" style="display:none; margin-top:5px; font-size:12px; padding:6px 10px; background:var(--c-blue-bg); border:1px solid #bae6fd; border-radius:6px; color:var(--c-blue-tx);">
           <span id="sf_deposit_hint_text"></span>
           <button type="button" onclick="applyExpectedDeposit()" style="margin-left:8px; font-size:11px; padding:2px 8px; background:#0369a1; color:white; border:none; border-radius:4px; cursor:pointer;">적용</button>
           <button type="button" onclick="document.getElementById('sf_deposit_hint').style.display='none'" style="margin-left:4px; font-size:11px; padding:2px 6px; background:transparent; color:var(--c-blue-tx); border:1px solid #0369a1; border-radius:4px; cursor:pointer;">닫기</button>
@@ -1553,7 +1553,7 @@ function renderWeeklyForecastBanner() {
     ${overdue.length?`<div style="background:var(--c-red-bg);border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;"><div style="font-size:11px;color:var(--c-red-tx);font-weight:600;">⚠️ 기한 지남 (${overdue.length}건)</div><div style="font-size:22px;font-weight:800;color:var(--c-red-tx);">${fmt(odTot)}</div><div style="font-size:11px;color:var(--c-red-tx);">즉시 수금 필요</div></div>`:''}
     <div style="background:${thisFriItems.length?'#eff6ff':'var(--c-gray-bg)'};border:1px solid ${thisFriItems.length?'#93c5fd':'var(--border)'};border-radius:8px;padding:10px 14px;"><div style="font-size:11px;color:var(--c-blue-tx);font-weight:600;">📅 이번 주 금 ${fmtD(thisFriStr)}</div><div style="font-size:22px;font-weight:800;color:${thisFriItems.length?'#1d4ed8':'var(--muted)'};">${thisFriItems.length?fmt(thisTot):'$0'}</div><div style="font-size:11px;color:var(--muted);">${thisFriItems.length}건 예상</div></div>
     <div style="background:var(--c-green-bg);border:1px solid #86efac;border-radius:8px;padding:10px 14px;"><div style="font-size:11px;color:var(--c-green-tx);font-weight:600;">📅 다음 주 금 ${fmtD(nextFriStr)}</div><div style="font-size:22px;font-weight:800;color:${nextFriItems.length?'#15803d':'var(--muted)'};">${nextFriItems.length?fmt(nextTot):'$0'}</div><div style="font-size:11px;color:var(--muted);">${nextFriItems.length}건 예상</div></div>
-    <div style="background:#fafafa;border:1px solid var(--border);border-radius:8px;padding:10px 14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">📅 2주 후 ${fmtD(twoFriStr)}</div><div style="font-size:22px;font-weight:800;color:var(--muted);">${twoFriItems.length?fmt(twoTot):'$0'}</div><div style="font-size:11px;color:var(--muted);">${twoFriItems.length}건</div></div>
+    <div style="background:var(--c-gray-bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">📅 2주 후 ${fmtD(twoFriStr)}</div><div style="font-size:22px;font-weight:800;color:var(--muted);">${twoFriItems.length?fmt(twoTot):'$0'}</div><div style="font-size:11px;color:var(--muted);">${twoFriItems.length}건</div></div>
   </div>`;
 }
 function renderAlerts() {
@@ -2587,7 +2587,7 @@ function renderExpMonthly() {
           <div id="mchev_${uid}" style="font-size:11px;color:var(--muted);">▼ 상세보기</div>
         </div>
       </div>
-      <div style="padding:0 16px 4px;background:#f9f9fb;">${catRows}</div>
+      <div style="padding:0 16px 4px;background:var(--c-gray-bg);">${catRows}</div>
       <div id="mdet_${uid}" style="display:none;">
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
@@ -5118,7 +5118,7 @@ function renderCashflowPage() {
   const legEl=document.getElementById('cfChartLegend');
   if(legEl) legEl.innerHTML=[
     {label:'🚗 출장(17%)', val:fmt(tot17), bg:'#dcfce7', col:'#166534'},
-    {label:'📦 사무(12%)', val:fmt(tot12), bg:'#e0e7ff', col:'#3730a3'},
+    {label:'📦 사무(12%)', val:fmt(tot12), bg:'var(--c-purple-bg)', col:'#3730a3'},
     {label:'🏪 위탁(10%)', val:fmt(tot10), bg:'var(--amber-bg)', col:'#854d0e'},
   ].map(k=>`<span style="background:${k.bg};color:${k.col};padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;">${k.label}: ${k.val}</span>`).join(' ');
 
@@ -5761,7 +5761,7 @@ function renderTaxEstimator(weekly) {
   const effectiveRate = annualIncome > 0 ? (totalTax / annualIncome * 100) : 0;
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;">
-      <div style="background:#f0f9ff;border:1px solid #7dd3fc;border-radius:8px;padding:12px;text-align:center;">
+      <div style="background:var(--c-blue-bg);border:1px solid #7dd3fc;border-radius:8px;padding:12px;text-align:center;">
         <div style="font-size:11px;color:var(--c-blue-tx);font-weight:700;text-transform:uppercase;margin-bottom:4px;">추정 연 수입</div>
         <div style="font-size:18px;font-weight:800;color:var(--c-blue-tx);">${fmt(annualIncome)}</div>
         <div style="font-size:11px;color:var(--muted);">주평균 ${fmt(avgWeekly)} × 52주</div>
@@ -5817,7 +5817,7 @@ function renderCardSnapshot() {
   const canvasId = 'snapChart';
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;">
-      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
+      <div style="background:var(--c-gray-bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
         <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">현재 총 부채</div>
         <div style="font-size:18px;font-weight:800;color:#ef4444;">${fmt(last.total)}</div>
       </div>
@@ -5826,7 +5826,7 @@ function renderCardSnapshot() {
         <div style="font-size:18px;font-weight:800;color:${change<0?'#10b981':'#ef4444'};">${change<0?'-':'+'}${fmt(Math.abs(change))}</div>
         <div style="font-size:11px;color:var(--muted);">${first.date} → ${last.date}</div>
       </div>
-      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
+      <div style="background:var(--c-gray-bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
         <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">저장 스냅샷</div>
         <div style="font-size:18px;font-weight:800;">${snaps.length}주</div>
       </div>
@@ -5858,7 +5858,7 @@ function showStoreHistory(storeName) {
   document.getElementById('storeHistoryTitle').textContent = storeName + ' — 수금 이력';
   document.getElementById('storeHistoryBody').innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
-      <div style="background:#f8fafc;border-radius:6px;padding:10px;text-align:center;">
+      <div style="background:var(--c-gray-bg);border-radius:6px;padding:10px;text-align:center;">
         <div style="font-size:11px;color:var(--muted);">총 커미션</div>
         <div style="font-size:16px;font-weight:800;">${fmt(totalComm)}</div>
         <div style="font-size:11px;color:var(--muted);">${all.length}건</div>
@@ -6571,7 +6571,7 @@ function renderCrdlList() {
     }
     return `
     <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-      <div style="background:#f8fafc;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid var(--border);"
+      <div style="background:var(--c-gray-bg);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid var(--border);"
            onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'">
         <div>
           <span style="font-weight:700;font-size:14px;">📄 ${d.dp||'날짜미확인'}</span>
@@ -7199,7 +7199,7 @@ function renderInboxBanner(){
   const inbox=loadInbox(); let box=document.getElementById('inboxBanner');
   if(!inbox.length){ if(box)box.remove(); return; }
   if(!box){ box=document.createElement('div'); box.id='inboxBanner';
-    box.style.cssText='margin:0 0 14px;border:1px solid var(--blue,#3b82f6);background:#eef5ff;border-radius:12px;padding:12px 14px';
+    box.style.cssText='margin:0 0 14px;border:1px solid var(--blue,#3b82f6);background:var(--c-blue-bg);border-radius:12px;padding:12px 14px';
     const c=document.querySelector('.container'); c.insertBefore(box, c.children[1]||null); }
   box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
     <b style="font-size:14px">📥 새 주문 ${inbox.length}건 · 인보이스 앱</b>
@@ -7351,7 +7351,7 @@ function accShow(official){
   h+='<button class="btn btn-sm" onclick="accSel=null;document.getElementById(\'accDetail\').innerHTML=\'\';renderAccList()">✕ 닫기</button></div>';
   if((a.crdl_aliases||[]).length||grp.length){
     h+='<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-size:11px;">';
-    if((a.crdl_aliases||[]).length)h+='<span style="color:var(--muted);">CRDL 별칭</span>'+a.crdl_aliases.map(x=>'<span style="background:#e1f5ee;color:var(--c-green-tx);padding:1px 8px;border-radius:10px;">'+x+'</span>').join('');
+    if((a.crdl_aliases||[]).length)h+='<span style="color:var(--muted);">CRDL 별칭</span>'+a.crdl_aliases.map(x=>'<span style="background:var(--c-green-bg);color:var(--c-green-tx);padding:1px 8px;border-radius:10px;">'+x+'</span>').join('');
     if(grp.length)h+='<span style="background:var(--amber-bg);color:var(--amber-text);padding:1px 8px;border-radius:10px;">⚠ 혼동주의: '+grp.join(', ')+'</span>';
     h+='</div>';}
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:12px;">';
@@ -7388,7 +7388,7 @@ function accShow(official){
     evs.slice().reverse().forEach(function(e){
       const isS=e.t==='s';
       const lab=isS?(e.st==='red'?['🧾 판매 · 미수','#a32d2d']:e.st==='green'?['🧾 판매 · 체크수령','#3b6d11']:['🧾 판매','#374151']):['💰 입금'+(e.est?'(일자미상)':''),'#185fa5'];
-      h+='<tr style="border-bottom:1px solid var(--border,#f6f6f3);'+(isS?'':'background:#f0f7ff;')+'">'+
+      h+='<tr style="border-bottom:1px solid var(--border,#f6f6f3);'+(isS?'':'background:var(--c-blue-bg);')+'">'+
         '<td style="padding:3px 8px;color:var(--muted);white-space:nowrap;">'+dispD(e.d)+'</td>'+
         '<td style="padding:3px 6px;color:'+lab[1]+';font-weight:600;white-space:nowrap;">'+lab[0]+'</td>'+
         '<td style="padding:3px 6px;text-align:right;font-variant-numeric:tabular-nums;'+(isS?'':'color:var(--c-blue-tx);')+'">'+(isS?'+':'−')+fm(e.amt)+'</td>'+
@@ -7433,7 +7433,7 @@ function renderItemAnalysis(){
   let h='<table style="width:100%;border-collapse:collapse;font-size:11.5px;"><thead><tr>'+
     ['품목군','매출','수량','단가범위','최근단가','가게수'].map((c,i)=>'<th style="position:sticky;top:0;background:var(--bg,#fafaf8);text-align:'+(i>0&&i<3?'right':'left')+';padding:5px 8px;font-size:11px;color:var(--muted);">'+c+'</th>').join('')+'</tr></thead><tbody>';
   keys.slice(0,60).forEach(b=>{const g=G[b];
-    h+='<tr onclick="itmSel=itmSel===\''+b.replace(/'/g,"\\'")+'\'?null:\''+b.replace(/'/g,"\\'")+'\';renderItemAnalysis()" style="cursor:pointer;border-bottom:1px solid var(--border,var(--c-gray-bg));'+(itmSel===b?'background:#e1f5ee;':'')+'">'+
+    h+='<tr onclick="itmSel=itmSel===\''+b.replace(/'/g,"\\'")+'\'?null:\''+b.replace(/'/g,"\\'")+'\';renderItemAnalysis()" style="cursor:pointer;border-bottom:1px solid var(--border,var(--c-gray-bg));'+(itmSel===b?'background:var(--c-green-bg);':'')+'">'+
       '<td style="padding:5px 8px;font-weight:600;">'+b+'</td>'+
       '<td style="padding:5px 8px;text-align:right;font-variant-numeric:tabular-nums;">'+fm(g.rev)+'</td>'+
       '<td style="padding:5px 8px;text-align:right;color:var(--muted);">'+g.un.toLocaleString()+'</td>'+
@@ -7444,7 +7444,7 @@ function renderItemAnalysis(){
       const SL={};
       L.filter(r=>itmBase(r.it)===b).forEach(r=>{const s=SL[r.st]||(SL[r.st]={rev:0,un:0,lastD:'',lastU:0,opts:new Set()});
         s.rev+=r.a;s.un+=r.pk*r.q;s.opts.add(r.it);if(r.d>=s.lastD){s.lastD=r.d;s.lastU=r.u;}});
-      h+='<tr><td colspan="6" style="padding:4px 8px 10px;background:#f6fbf9;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+      h+='<tr><td colspan="6" style="padding:4px 8px 10px;background:var(--c-green-bg);"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
       h+='<tr>'+['가게','매출','수량','최근단가','최근거래','옵션'].map(c=>'<th style="text-align:left;padding:3px 6px;font-size:9.5px;color:var(--muted);">'+c+'</th>').join('')+'</tr>';
       Object.keys(SL).sort((x,y)=>SL[y].rev-SL[x].rev).forEach(st=>{const s=SL[st];
         h+='<tr style="border-top:1px solid #e8f0ec;"><td style="padding:3px 6px;">'+st+'</td><td style="padding:3px 6px;font-variant-numeric:tabular-nums;">'+fm(s.rev)+'</td><td style="padding:3px 6px;">'+s.un.toLocaleString()+'</td><td style="padding:3px 6px;">$'+s.lastU+'</td><td style="padding:3px 6px;color:var(--muted);">'+s.lastD+'</td><td style="padding:3px 6px;color:var(--muted);font-size:9.5px;">'+[...s.opts].map(o=>o.replace(b,'').trim()||'기본').join(', ')+'</td></tr>';});
@@ -7477,7 +7477,7 @@ h1{font-size:17px;font-weight:800} .sub{font-size:11px;color:#6b7280;margin:2px 
 .kpis{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .kpi{flex:1;min-width:120px;background:var(--card);border-radius:10px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .kpi .l{font-size:11px;color:#6b7280;font-weight:700} .kpi .v{font-size:17px;font-weight:900;margin-top:2px}
-.kpi.net{background:#e1f5ee} .kpi.net .v{color:var(--c-green-tx)}
+.kpi.net{background:var(--c-green-bg)} .kpi.net .v{color:var(--c-green-tx)}
 h2{font-size:13px;font-weight:800;margin:14px 0 6px;color:var(--c-green-tx)}
 table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--card);border-radius:8px;overflow:hidden}
 th{background:var(--c-gray-bg);text-align:left;padding:5px 8px;font-size:11px;color:#6b7280}
@@ -7514,7 +7514,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}
 th{background:var(--c-gray-bg);text-align:left;padding:5px 8px;font-size:11px;color:#6b7280}
 td{padding:5px 8px;border-top:1px solid var(--c-gray-bg)}
 .r{text-align:right;font-variant-numeric:tabular-nums}.c{text-align:center}.n{font-size:11px;color:#6b7280}
-.ok{background:#ecfdf5;color:var(--c-green-tx);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:700}
+.ok{background:var(--c-green-bg);color:var(--c-green-tx);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:700}
 </style></head><body>
 <h1>🔗 인보이스·정산(CRDL) 대조</h1>
 <div class=&quot;sub&quot;>정산 2026-06-19 기준 · OPEN INVOICE 대조 · 엔진 자동생성</div>
