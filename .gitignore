@@ -1,0 +1,5 @@
+# ===== 공개 repo 보호: 암호화된 docs/ 외에는 절대 올리지 않음 =====
+/*
+!/docs
+!.gitignore
+.DS_Store

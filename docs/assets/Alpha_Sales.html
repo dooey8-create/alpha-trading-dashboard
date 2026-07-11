@@ -1,0 +1,61 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Alpha Sales</title>
+<style>
+:root{color-scheme:light dark}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+ font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:#f4f5f7;color:#1f2430}
+@media(prefers-color-scheme:dark){body{background:#15181f;color:#e8eaed}.box{background:#1e222b!important;box-shadow:0 6px 24px rgba(0,0,0,.5)!important}input[type=password]{background:#12151b!important;color:#e8eaed!important;border-color:#333a47!important}}
+.box{background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.10);padding:34px 30px;width:300px;text-align:center}
+h1{font-size:17px;margin:0 0 4px}p.sub{font-size:12px;color:#8a919e;margin:0 0 18px}
+input[type=password]{width:100%;box-sizing:border-box;font-size:16px;padding:11px 12px;border:1.5px solid #d6dae2;border-radius:9px;outline:none}
+input[type=password]:focus{border-color:#3b82f6}
+label{display:flex;gap:6px;align-items:center;justify-content:center;font-size:12px;color:#8a919e;margin:12px 0}
+button{width:100%;font-size:15px;font-weight:700;padding:11px;border:0;border-radius:9px;background:#3b82f6;color:#fff;cursor:pointer}
+button:disabled{opacity:.55}
+#msg{font-size:12px;color:#ef4444;min-height:16px;margin:10px 0 0}
+</style></head><body>
+<form class="box" id="f">
+<h1>🔒 Alpha Sales</h1><p class="sub">비밀번호를 입력하세요</p>
+<input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" autofocus>
+<label><input type="checkbox" id="rm" checked> 이 기기에서 기억하기</label>
+<button id="btn" type="submit">열기</button>
+<div id="msg"></div>
+</form>
+<script type="text/plain" id="ct">CT/wiI7l9FXqa0axWKv5VcgqcJHNL9SLdxzEhCbWHlJ4ao8QKYjsEjJzjto71uL8/L9PKfrstbNxiZjA/JQ14c3zvp27mxDLhRKomjzp+d8MJjw0KbHo5hjThfLn2c/xR172GBQnog6JMclJOWDdRjcGcL1z8iYQxxLwpAiUkaxJ7VXPdq83DH1YPmLN6+61fSdfdTLk1ZvikeqLcf1Q3Cg/nK5dvbbJa4sJ39UzFcILBHUIfz8yQ/5urGgc0PItRVXntLPx2ftRGRG+BgIQ+FfvKUT8TqhoQFDMQ2W4kZF7dHAIww==</script>
+<script>
+const CFG={salt:"ett7H61VLHsG9taVLwA6lw==",iv:"g5BRstk/5wWUC1N4",it:300000};
+const KEYNAME="at_gate_k";
+const b2u=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0));
+const u2b=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+async function keyFromPw(pw){
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);
+  return await crypto.subtle.deriveBits({name:"PBKDF2",salt:b2u(CFG.salt),iterations:CFG.it,hash:"SHA-256"},base,256);
+}
+async function tryOpen(rawBits){
+  const key=await crypto.subtle.importKey("raw",rawBits,"AES-GCM",false,["decrypt"]);
+  const ct=b2u(document.getElementById("ct").textContent.trim());
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b2u(CFG.iv)},key,ct);
+  const html=new TextDecoder().decode(pt);
+  document.open();document.write(html);document.close();
+}
+window.addEventListener("DOMContentLoaded",async()=>{
+  const saved=localStorage.getItem(KEYNAME);
+  if(saved){try{await tryOpen(b2u(saved).buffer);return}catch(e){localStorage.removeItem(KEYNAME)}}
+});
+document.getElementById("f").addEventListener("submit",async ev=>{
+  ev.preventDefault();
+  const btn=document.getElementById("btn"),msg=document.getElementById("msg");
+  btn.disabled=true;msg.textContent="확인 중...";msg.style.color="#8a919e";
+  try{
+    const raw=await keyFromPw(document.getElementById("pw").value);
+    if(document.getElementById("rm").checked)localStorage.setItem(KEYNAME,u2b(raw));
+    await tryOpen(raw);
+  }catch(e){
+    localStorage.removeItem(KEYNAME);
+    msg.style.color="#ef4444";msg.textContent="비밀번호가 틀렸습니다";
+    btn.disabled=false;
+  }
+});
+</script></body></html>
