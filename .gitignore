@@ -3,3 +3,7 @@
 !/docs
 !.gitignore
 .DS_Store
+
+# 배포 salt (기기 기억용 고정값 — 절대 공개 금지)
+🗂️ 시스템·자료/⚙️ 시스템/.deploy_salts.json
+.deploy_salts.json

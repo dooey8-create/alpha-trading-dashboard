@@ -19,14 +19,14 @@ button:disabled{opacity:.55}
 <form class="box" id="f">
 <h1>🔒 Alpha Sales</h1><p class="sub">비밀번호를 입력하세요</p>
 <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" autofocus>
-<label><input type="checkbox" id="rm" checked> 이 기기에서 기억하기</label>
+<label><input type="checkbox" id="rm" checked> 이 기기에서 기억하기 <span style="color:#8a919e">(다음부터 안 물어봄)</span></label>
 <button id="btn" type="submit">열기</button>
 <div id="msg"></div>
 </form>
-<script type="text/plain" id="ct">N9ejKb4ZBsrI6i4WqDEj2DDm7lr2/gml68NVxPSCrLAKExS1guReqESvpCcLi8CGvaoI7LPSomDc8JpHAoedT/VAfO5sCBXMs0pZYG+lClYIYXEq3B7iGrQbvM/DfumVeZt/B5+6k6rVZPeNTBWQyCNe3hUsVZdH0BMJTkJZoBI23DAGDPR6nmkRrpvRtEMoQtIE8ka3E4698Lz+8DjMNwVOc8Nt7m/tkTtSWWszorsgqTqG1e0SaDa4V7BDiL39Vx7jVzKIGf9pNXaHIyxeevujuKbsXxxYKBSbV+DjxpKqwXPZQA==</script>
+<script type="text/plain" id="ct">NQNus5oea2854N2hbFPDCVmzkTLfrYTZINsRFt9RdKtT4R8brUUARlB2+do5nIzMaIu7xO4qD18HemO4a7iFYTmJU+831lh+VpAH7CxYYsKc7uWALT13wUjwtMQ9F1RtZM5YgFL+upyW4wIFBE9yN33F6fYpq5JUlJyty7wE4OkXyhbXwp4n9uOTWossnz+LYpFBg4U6xfO1R+700TyoS3XGBeBYrdNcA1IrihWZ0y6ocq1+l0FZqW3zgaMh2IENTnTCniocQBpuiZ5uPmeIyz4cID2JVwtkMUWvctq2R64TDFurLQ==</script>
 <script>
-const CFG={salt:"3hPTIN2gSES1HROb9wIgVQ==",iv:"qgb0LIL99tsscwpn",it:300000};
-const KEYNAME="at_gate_k";
+const CFG={salt:"NowSPpVAs9NJtgC+mxP49g==",iv:"NbJB9a5TxVqR4uv3",it:300000};
+const KEYNAME="at_gate_k_"+"alpha_sales_html";
 const b2u=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0));
 const u2b=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
 async function keyFromPw(pw){
