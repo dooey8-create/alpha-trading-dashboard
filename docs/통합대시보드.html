@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Alpha Trading — 통합</title>
+<link rel="apple-touch-icon" href="assets/icon-dash-180.png">
+<style>
+  :root{--bg:#f4f5f7;--bar:#ffffff;--text:#1f2430;--muted:#6b7280;--line:#e3e6eb;--accent:#2563eb;--accent-bg:#e8efff}
+  @media(prefers-color-scheme:dark){:root{--bg:#14171d;--bar:#1c2028;--text:#e8eaed;--muted:#9aa3b2;--line:#2b313c;--accent:#7aa2ff;--accent-bg:#1f2a44}}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+  body{display:flex;flex-direction:column}
+  header{background:var(--bar);border-bottom:1px solid var(--line);padding:env(safe-area-inset-top) 0 0;flex:none}
+  .top{display:flex;align-items:center;gap:10px;padding:8px 14px 0}
+  .brand{font-weight:700;font-size:15px;white-space:nowrap}
+  .spacer{flex:1}
+  .ext{font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:7px;padding:4px 9px;white-space:nowrap}
+  .ext:hover{color:var(--accent);border-color:var(--accent)}
+  nav{display:flex;gap:4px;overflow-x:auto;padding:8px 10px 0;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:none;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;
+    padding:8px 13px 10px;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap}
+  nav button:hover{color:var(--text)}
+  nav button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  main{flex:1;position:relative;min-height:0}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);display:none}
+  iframe.on{display:block}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">Alpha Trading</div>
+    <div class="spacer"></div>
+    <a class="ext" id="ext" href="#" target="_blank" rel="noopener">새 창으로 열기 ↗</a>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+<main id="frames"></main>
+<script>
+const PAGES = [
+  {id:'dash',  label:'🏠 대시보드',        src:'Alpha_Trading.html'},
+  {id:'money', label:'💵 수금관리',        src:'수금관리.html'},
+  {id:'cal',   label:'📅 캘린더',          src:'월별캘린더.html'},
+  {id:'pl',    label:'📈 손익 (기준 10개월)', src:'월별손익_2025-11_2026-08.html'},
+  {id:'pl26',  label:'📈 손익 2026',       src:'월별손익.html'},
+  {id:'inv',   label:'🧾 인보이스',        src:'invoice.html'},
+  {id:'sales', label:'🛍️ Sales',           src:'Alpha_Sales.html'},
+];
+const tabs=document.getElementById('tabs'), frames=document.getElementById('frames'), ext=document.getElementById('ext');
+const loaded={};
+function store(k,v){try{v===undefined?0:localStorage.setItem(k,v);return localStorage.getItem(k)}catch(e){return null}}
+function show(id){
+  const p=PAGES.find(x=>x.id===id)||PAGES[0];
+  if(!loaded[p.id]){                       // 처음 누를 때만 불러옴 (빠르게 열리도록)
+    const f=document.createElement('iframe'); f.src=p.src; f.dataset.id=p.id; f.title=p.label;
+    frames.appendChild(f); loaded[p.id]=f;
+  }
+  for(const f of frames.children) f.classList.toggle('on',f.dataset.id===p.id);
+  for(const b of tabs.children){ b.classList.toggle('on',b.dataset.id===p.id); if(b.dataset.id===p.id) b.scrollIntoView({block:'nearest',inline:'center'}); }
+  ext.href=p.src;
+  store('hub_tab',p.id);
+  if(location.hash!=='#'+p.id) history.replaceState(null,'','#'+p.id);
+}
+for(const p of PAGES){
+  const b=document.createElement('button'); b.textContent=p.label; b.dataset.id=p.id;
+  b.onclick=()=>show(p.id); tabs.appendChild(b);
+}
+// 탭 다시 누르면 새로고침
+tabs.addEventListener('dblclick',e=>{const id=e.target.dataset&&e.target.dataset.id; if(id&&loaded[id]) loaded[id].src=loaded[id].src;});
+show((location.hash||'').slice(1) || store('hub_tab') || 'dash');
+</script>
+</body>
+</html>
