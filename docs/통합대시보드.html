@@ -23,6 +23,9 @@
   nav button{flex:none;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;
     padding:8px 13px 10px;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap}
   nav button:hover{color:var(--text)}
+  .deploy{display:none;background:#fdf1e6;color:#8a4b00;font-size:13px;padding:7px 14px;border-top:1px solid #f1d7b8}
+  .deploy.show{display:block}
+  @media(prefers-color-scheme:dark){.deploy{background:#2c2216;color:#f0bf7a;border-color:#4a3720}}
   nav button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
   main{flex:1;position:relative;min-height:0}
   iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);display:none}
@@ -37,15 +40,22 @@
     <a class="ext" id="ext" href="#" target="_blank" rel="noopener">새 창으로 열기 ↗</a>
   </div>
   <nav id="tabs"></nav>
+  <div class="deploy" id="deploy"></div>
 </header>
 <main id="frames"></main>
+<script src="배포상태.js"></script>
 <script>
+// 배포 안 된 변경이 있으면 위에 알림 (배포상태.js — 명세서체크표.py 가 만들고, 배포하면 같아짐)
+try{ const D=window.DEPLOY; if(D && D.deployed && D.local!==D.deployed){ const b=document.getElementById('deploy');
+  b.textContent='🚀 폰·웹에 아직 안 올라간 변경이 있어요 ('+D.local+' / 웹 '+D.deployed+') — 폴더의 🚀 배포하기 를 더블클릭하세요'; b.classList.add('show'); } }catch(e){}
 const PAGES = [
   {id:'dash',  label:'🏠 대시보드',        src:'Alpha_Trading.html'},
   {id:'money', label:'💵 수금관리',        src:'수금관리.html'},
   {id:'cal',   label:'📅 캘린더',          src:'월별캘린더.html'},
-  {id:'pl',    label:'📈 손익 (기준 10개월)', src:'월별손익_2025-11_2026-08.html'},
+  {id:'pl',    label:'📈 손익 25.10~26.08 (내 부담)', src:'월별손익_2025-10_2026-08.html'},
+  {id:'plnow', label:'📈 손익 26.09~ (회사 부담)',  src:'월별손익_2026-09_이후.html'},
   {id:'pl26',  label:'📈 손익 2026',       src:'월별손익.html'},
+  {id:'stmt',  label:'📋 명세서·청구',      src:'명세서체크표.html'},
   {id:'inv',   label:'🧾 인보이스',        src:'invoice.html'},
   {id:'sales', label:'🛍️ Sales',           src:'Alpha_Sales.html'},
 ];
