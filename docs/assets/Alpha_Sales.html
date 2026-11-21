@@ -23,27 +23,27 @@ button:disabled{opacity:.55}
 <button id="btn" type="submit">열기</button>
 <div id="msg"></div>
 </form>
-<script type="text/plain" id="ct">vp+C9CoXGnFLslJWPUkzpb/ou2sjisDJCni4RNXbSlEFJ3Gkrqwm5454tyM7nDwlHohlcd0FCVVmnddp2rmqa6rZpOz8ZaM8FaDvCmOde1EUTXkb6zaqhzSv9OehCt9GGlSgDgqO55S8BRWVVXBT0vpvwkIJ2dt7TPuf1tBZ49pIYANOB+ggaejU+as8KX5g5K6hoJCQlmL4SI3FeYw8P3t7VDlx+vgjpinFq8CMLozP8txYZh6FnbjXoAv30c68ZOSqyrYVKUF3gCJyVe1H8XTEtU0q2ybN3ozVjXZB47X9OsioLQ==</script>
+<script type="text/plain" id="ct">TLVmD39kKtnFJvKKfM13aImbCJwUbXh4NW5kup9/oiezc8uIDf7CpPoTI+sNvAlgDuUxfLjl8mRsDhN5u16pRU+rZ2ky5W13t/jrJhPDeAHMrWhoygHxe4aoSISWsJoszcxOc4ALv+CzeJxyUhuE7DZGR/0krnhxHGjgrebEfUWG/cvSCtTe7QkxSSqlLILiLjnBGdEjVrP11y/E+ESJ2LWRqdgVXyAilLCuPJ85wJDiLJk3UK4nqbmqxe5uN/Yob9OYzobUHR9mkL9VCQszs1HGfSnOlpNP8KdV4+/eFtdERSLfhg==</script>
 <script>
-const CFG={salt:"NowSPpVAs9NJtgC+mxP49g==",iv:"0ZIbqS8WUdiPkBdP",it:300000};
-const KEYNAME="at_gate_k_"+"alpha_sales_html";
+const CFG={salt:"yej393d3/S2hxeHv0ER2cg==",iv:"U01NRtIPfL6roFMQ",it:300000};
+const KEYNAME="at_gate_k_shared";   // 모든 페이지가 같은 키 — 한 번 입력하면 전부 열림 (2026-11-21)
 const b2u=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0));
 const u2b=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
 async function keyFromPw(pw){
   const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);
   return await crypto.subtle.deriveBits({name:"PBKDF2",salt:b2u(CFG.salt),iterations:CFG.it,hash:"SHA-256"},base,256);
 }
-async function tryOpen(rawBits){
+async function decrypt(rawBits){
   const key=await crypto.subtle.importKey("raw",rawBits,"AES-GCM",false,["decrypt"]);
   const ct=b2u(document.getElementById("ct").textContent.trim());
   const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b2u(CFG.iv)},key,ct);
-  const html=new TextDecoder().decode(pt);
-  document.open();document.write(html);document.close();
+  return new TextDecoder().decode(pt);
 }
+function show(html){document.open();document.write(html);document.close();}
 async function persist(){try{if(navigator.storage&&navigator.storage.persist){if(!(await navigator.storage.persisted()))await navigator.storage.persist();}}catch(e){}}
 window.addEventListener("DOMContentLoaded",async()=>{
   const saved=localStorage.getItem(KEYNAME);
-  if(saved){try{await persist();await tryOpen(b2u(saved).buffer);return}catch(e){localStorage.removeItem(KEYNAME)}}
+  if(saved){try{await persist();show(await decrypt(b2u(saved).buffer));return}catch(e){/* 저장된 키로 안 열리면 입력창만 보여줌 (다른 페이지 키는 지우지 않음) */}}
 });
 document.getElementById("f").addEventListener("submit",async ev=>{
   ev.preventDefault();
@@ -51,10 +51,10 @@ document.getElementById("f").addEventListener("submit",async ev=>{
   btn.disabled=true;msg.textContent="확인 중...";msg.style.color="#8a919e";
   try{
     const raw=await keyFromPw(document.getElementById("pw").value);
+    const html=await decrypt(raw);   // 맞는 비밀번호일 때만 저장
     if(document.getElementById("rm").checked){localStorage.setItem(KEYNAME,u2b(raw));await persist();}
-    await tryOpen(raw);
+    show(html);
   }catch(e){
-    localStorage.removeItem(KEYNAME);
     msg.style.color="#ef4444";msg.textContent="비밀번호가 틀렸습니다";
     btn.disabled=false;
   }
