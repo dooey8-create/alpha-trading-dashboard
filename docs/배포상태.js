@@ -1,1 +1,1 @@
-window.DEPLOY={"local": "20261119a", "deployed": "20261119a"};
+window.DEPLOY={"local": "20261121b", "deployed": "20261121b"};
